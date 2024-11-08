@@ -1,0 +1,33 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 1000  # Hz
+
+    position_controller:
+      type: position_controllers/JointGroupPositionController
+
+    velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+    r2_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+position_controller:
+  ros__parameters:
+    joints:
+      - j1
+      - j2
+
+velocity_controller:
+  ros__parameters:
+    joints:
+      - j1
+      - j2
+
+r2_effort_controller:
+  ros__parameters:
+    joints:
+      - j1
+      - j2

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<robot name="r2">
+    <link name="world"/>
+    <link name = "link_1">
+        <inertial>
+            <origin xyz="0.175 0 0" rpy="0 0 0"/>
+            <mass value="2"/>
+            <inertia ixx="0.0134" iyy="0.0270834" izz="0.0270834" ixy="0.0" ixz="0.0" iyz="0.0"/>
+        </inertial>
+        <collision>
+            <origin xyz="0.175 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.35 0.02 0.02"/>
+            </geometry>
+        </collision> 
+        <visual>
+            <origin xyz="0.175 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.35 0.02 0.02"/>
+            </geometry>
+            <material name="cyan">
+                <color rgba="0 1.0 1.0 1.0"/>
+            </material>
+        </visual>
+    </link>
+    <joint name="j1" type="revolute">
+        <parent link="world"/>
+        <child link="link_1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <axis xyz="0 -1 0"/>
+        <limit lower="-3.1415926535" upper="3.1415926535" effort="25.0" velocity="10"/>
+    </joint>
+
+    <gazebo reference="link_1">
+      <material>Gazebo/RedBright</material>
+	  <selfCollide>false</selfCollide>
+      <mu1 value="0.05" />
+      <mu2 value="0.05" />
+      <gravity>true</gravity>
+    </gazebo>
+
+    <!--Gazebo related-->
+    <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find urdf_tutorials)/config/test_controller.yaml</parameters>
+      </plugin>
+      <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+        <render_engine>ogre2</render_engine>
+      </plugin>
+    </gazebo>
+    <ros2_control name="planar" type="system">
+        <hardware>
+            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </hardware>
+        <joint name="j1">
+            <command_interface name="effort">
+                <param name="min">-25</param>
+                <param name="max">25</param>
+            </command_interface>
+            <state_interface name="position">
+                <param name="initial_value">-1.570796326794896558</param>
+            </state_interface>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </ros2_control>
+</robot>
