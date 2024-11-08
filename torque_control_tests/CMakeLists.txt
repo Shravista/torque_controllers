@@ -13,13 +13,20 @@ find_package(sensor_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(pinocchio REQUIRED)
 
+# include
+include_directories(include)
+
 # add executables here
 add_executable(planar_r2 src/planar_r2.cpp)
 target_link_libraries(planar_r2 pinocchio::pinocchio)
 ament_target_dependencies(planar_r2 rclcpp std_msgs sensor_msgs)
 
+add_executable(inverseDynamicsControl src/inverseDynamicsControl.cpp)
+target_link_libraries(inverseDynamicsControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
+ament_target_dependencies(inverseDynamicsControl rclcpp std_msgs sensor_msgs)
+
 # add install targets here
-install(TARGETS planar_r2
+install(TARGETS planar_r2 inverseDynamicsControl
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

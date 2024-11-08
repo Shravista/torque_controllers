@@ -1,0 +1,9 @@
+/inverseDynamicsController:
+  ros__parameters:
+    iiwa14:
+      package_name: "example_robots"
+      relative_path: "iiwa_description/urdf"
+      description: "iiwa14.urdf"
+      controller_name: "iiwa14_effort_controller"
+      kp: [16.0, 16.0, 16.0, 16.0, 16.0, 16.0, 16.0]
+      kd: [8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]

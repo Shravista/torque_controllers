@@ -71,6 +71,7 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
     _msg.data.resize(_q.size());
     while (rclcpp::ok()){
         rclcpp::spin_some(this->get_node_base_interface());
+
         RCLCPP_INFO(this->get_logger(), "Running");
         // compute the system matrices
         pinocchio::crba(_model, _data, _q);
@@ -80,11 +81,16 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
         _data.M.triangularView<Eigen::StrictlyLower>() = 
                         _data.M.transpose().triangularView<Eigen::StrictlyLower>();
 
+        RCLCPP_WARN(this->get_logger(), "Compute the system matrices");
         // compute the control input
         val = _Kp*(_qDes -_q) + _Kd*(-_qdot);
+        RCLCPP_WARN(this->get_logger(), "Compute the acceleration term");
+
         u = _data.M*val + _data.C*_qdot + _data.g;
+        RCLCPP_WARN_STREAM(this->get_logger(), "Compute the system control with size = " << u.size() << " msg.size = " << _msg.data.size());
 
         Eigen::Map<Eigen::Vector2d>(_msg.data.data(), _msg.data.size()) = u;                
+        RCLCPP_WARN(this->get_logger(), "Compute the system control");
 
         _pub->publish(_msg);
         // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
@@ -96,16 +102,16 @@ int main(int argc, char* argv[]){
     
     rclcpp::init(argc, argv);
 
-    Eigen::Vector2d qDes = {M_PI/4.0, M_PI/3.0};
-    if (argc == 3){
-        qDes(0) = atof(argv[1])/180.0*M_PI;
-        qDes(1) = atof(argv[2])/180.0*M_PI;
+    Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
+    if (argc == 8){
+        for (int i = 0; i < argc-1; i++)
+            qDes(i) = atof(argv[i+1])/180.0*M_PI;
     }
     
     InverseDynamicsControl controller("iiwa14");
-    controller.run();
-    rclcpp::shutdown();
+    controller.run(qDes);
     // rclcpp::spin(std::make_shared<InverseDynamicsControl>("iiwa14"));
+    rclcpp::shutdown();
 
 }
 
