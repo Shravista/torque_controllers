@@ -81,16 +81,12 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
         _data.M.triangularView<Eigen::StrictlyLower>() = 
                         _data.M.transpose().triangularView<Eigen::StrictlyLower>();
 
-        RCLCPP_WARN(this->get_logger(), "Compute the system matrices");
         // compute the control input
         val = _Kp*(_qDes -_q) + _Kd*(-_qdot);
-        RCLCPP_WARN(this->get_logger(), "Compute the acceleration term");
 
         u = _data.M*val + _data.C*_qdot + _data.g;
-        RCLCPP_WARN_STREAM(this->get_logger(), "Compute the system control with size = " << u.size() << " msg.size = " << _msg.data.size());
 
-        Eigen::Map<Eigen::Vector2d>(_msg.data.data(), _msg.data.size()) = u;                
-        RCLCPP_WARN(this->get_logger(), "Compute the system control");
+        Eigen::Map<Eigen::VectorXd>(_msg.data.data(), _msg.data.size()) = u;                
 
         _pub->publish(_msg);
         // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
