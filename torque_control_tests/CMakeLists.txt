@@ -21,12 +21,17 @@ add_executable(planar_r2 src/planar_r2.cpp)
 target_link_libraries(planar_r2 pinocchio::pinocchio)
 ament_target_dependencies(planar_r2 rclcpp std_msgs sensor_msgs)
 
-add_executable(inverseDynamicsControl src/inverseDynamicsControl.cpp)
+add_executable(inverseDynamicsControl src/iDControl.cpp src/inverseDynamicsControl.cpp)
 target_link_libraries(inverseDynamicsControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
 ament_target_dependencies(inverseDynamicsControl rclcpp std_msgs sensor_msgs)
 
+add_executable(pdGravityControl src/pdGravityControl.cpp src/inverseDynamicsControl.cpp)
+target_link_libraries(pdGravityControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
+ament_target_dependencies(pdGravityControl rclcpp std_msgs sensor_msgs)
+
+
 # add install targets here
-install(TARGETS planar_r2 inverseDynamicsControl
+install(TARGETS planar_r2 inverseDynamicsControl pdGravityControl
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

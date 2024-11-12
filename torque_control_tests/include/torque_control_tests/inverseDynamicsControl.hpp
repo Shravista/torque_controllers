@@ -53,6 +53,7 @@ class InverseDynamicsControl: public rclcpp::Node{
         ~InverseDynamicsControl(){};
 
         void run(Eigen::VectorXd target);
+        void pdGravityControl(Eigen::VectorXd target);
 
 };
 #endif //_INVERSE_DYNAMICS_CONTROL_HPP_

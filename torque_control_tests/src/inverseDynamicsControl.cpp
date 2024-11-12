@@ -94,20 +94,23 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
     }
 }
 
-int main(int argc, char* argv[]){
-    
-    rclcpp::init(argc, argv);
+void InverseDynamicsControl::pdGravityControl(Eigen::VectorXd target){
+    _qDes = target;
+    Eigen::VectorXd val(_q.size()), u(_q.size());
+    _msg.data.resize(_q.size());
+    while (rclcpp::ok()){
+        rclcpp::spin_some(this->get_node_base_interface());
 
-    Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
-    if (argc == 8){
-        for (int i = 0; i < argc-1; i++)
-            qDes(i) = atof(argv[i+1])/180.0*M_PI;
+        RCLCPP_INFO(this->get_logger(), "Running");
+        pinocchio::computeGeneralizedGravity(_model, _data, _q);
+
+        // compute the control input
+        u = _Kp*(_qDes -_q) + _Kd*(-_qdot) + _data.g;
+
+        Eigen::Map<Eigen::VectorXd>(_msg.data.data(), _msg.data.size()) = u;                
+
+        _pub->publish(_msg);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
+        rclcpp::sleep_for(1ms);
     }
-    
-    InverseDynamicsControl controller("iiwa14");
-    controller.run(qDes);
-    // rclcpp::spin(std::make_shared<InverseDynamicsControl>("iiwa14"));
-    rclcpp::shutdown();
-
 }
-
