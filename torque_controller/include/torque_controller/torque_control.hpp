@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
-#include "forward_command_controller/visibility_control.h"
+#include "torque_controller/visibility_control.h"
 #include "rclcpp/subscription.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_buffer.h"
@@ -16,7 +16,8 @@ namespace torque_controller{
 // using torqueCmd ;
 
 class TorqueController : public controller_interface::ControllerInterface{
-
+    public:
+        
 };
 }
 
