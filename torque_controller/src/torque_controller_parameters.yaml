@@ -1,4 +1,4 @@
-torque_controller_controller:
+torque_controller:
   joints: {
     type: string_array,
     default_value: [],

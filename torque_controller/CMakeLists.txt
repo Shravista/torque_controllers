@@ -18,28 +18,29 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   torque_msgs
 )
 
-# generate parameter library
-generate_parameter_library(
-  torque_controller_parameters
-  params/torque_controller_parameters.yaml
-)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(backward_ros REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
+find_package(${Dependency} REQUIRED)
 endforeach()
 
+# generate parameter library
+generate_parameter_library(
+  torque_controller_parameters
+  src/torque_controller_parameters.yaml
+)
 include_directories(include)
 
 # add libraries
 add_library(torque_controller SHARED
             src/torque_controller.cpp)
 target_compile_features(torque_controller PUBLIC cxx_std_17)
-# target_link_libraries(torque_controller PUBLIC )
+target_link_libraries(torque_controller PUBLIC torque_controller_parameters)
 ament_target_dependencies(torque_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
 target_compile_definitions(torque_controller PRIVATE "TORQUE_CONTROLLER_BUILDING_DLL")
+target_include_directories(torque_controller PUBLIC $<INSTALL_INTERFACE:include/torque_controller>)
 
 # install 
 install(
