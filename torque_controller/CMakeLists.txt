@@ -15,8 +15,14 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   realtime_tools
   std_msgs
+  torque_msgs
 )
 
+# generate parameter library
+generate_parameter_library(
+  torque_controller_parameters
+  params/torque_controller_parameters.yaml
+)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -25,13 +31,25 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+include_directories(include)
+
 # add libraries
+add_library(torque_controller SHARED
+            src/torque_controller.cpp)
+target_compile_features(torque_controller PUBLIC cxx_std_17)
+# target_link_libraries(torque_controller PUBLIC )
+ament_target_dependencies(torque_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_compile_definitions(torque_controller PRIVATE "TORQUE_CONTROLLER_BUILDING_DLL")
 
 # install 
 install(
   DIRECTORY include/
   DESTINATION include/torque_controller
 )
+
+# install(
+#   TARGETS torque_controller
+# )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -45,4 +63,16 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+install(
+  TARGETS
+    torque_controller
+  EXPORT export_torque_controller
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include
+)
+
+ament_export_targets(export_torque_controller HAS_LIBRARY_TARGET)
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 ament_package()

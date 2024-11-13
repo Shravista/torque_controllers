@@ -11,7 +11,6 @@ int main(int argc, char* argv[]){
     }
     
     InverseDynamicsControl controller("iiwa14");
-    controller.run(qDes);
     rclcpp::shutdown();
 
 }
