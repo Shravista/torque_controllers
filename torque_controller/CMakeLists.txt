@@ -15,7 +15,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   realtime_tools
   std_msgs
-  rosidl_default_generators
 )
 
 
@@ -25,11 +24,6 @@ find_package(backward_ros REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
-
-# find messages
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/Commands.msg"
-)
 
 # add libraries
 
