@@ -29,9 +29,14 @@ add_executable(pdGravityControl src/pdGravityControl.cpp src/inverseDynamicsCont
 target_link_libraries(pdGravityControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
 ament_target_dependencies(pdGravityControl rclcpp std_msgs sensor_msgs)
 
+add_executable(gravityCompensation src/gravityCompensation.cpp src/inverseDynamicsControl.cpp)
+target_link_libraries(gravityCompensation pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
+ament_target_dependencies(gravityCompensation rclcpp std_msgs sensor_msgs)
+
+
 
 # add install targets here
-install(TARGETS planar_r2 iDControl pdGravityControl
+install(TARGETS planar_r2 iDControl pdGravityControl gravityCompensation
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

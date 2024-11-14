@@ -114,3 +114,23 @@ void InverseDynamicsControl::pdGravityControl(Eigen::VectorXd target){
         rclcpp::sleep_for(1ms);
     }
 }
+
+void InverseDynamicsControl::gravityCompensation(){
+    Eigen::VectorXd val(_q.size()), u(_q.size());
+    _msg.data.resize(_q.size());
+    while (rclcpp::ok()){
+        rclcpp::spin_some(this->get_node_base_interface());
+
+        RCLCPP_INFO(this->get_logger(), "Running");
+        pinocchio::computeGeneralizedGravity(_model, _data, _q);
+
+        // compute the control input
+        u = _data.g;
+
+        Eigen::Map<Eigen::VectorXd>(_msg.data.data(), _msg.data.size()) = u;                
+
+        _pub->publish(_msg);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
+        rclcpp::sleep_for(1ms);
+    }
+}

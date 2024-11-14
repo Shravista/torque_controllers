@@ -19,7 +19,7 @@
 namespace torque_controller{
 using torqueCmd = torque_msgs::msg::Commands;
 
-class TorqueController : public controller_interface::ControllerInterface{
+class TorqueController : public controller_interface::ControllerInterface {
     public:
         TORQUE_CONTROLLER_PUBLIC TorqueController();
         TORQUE_CONTROLLER_PUBLIC ~TorqueController() = default;
@@ -47,8 +47,8 @@ class TorqueController : public controller_interface::ControllerInterface{
     
     protected:
         // functions
-        virtual void declare_parameters() = 0;
-        virtual controller_interface::CallbackReturn read_parameters() = 0;
+        void declare_parameters();
+        controller_interface::CallbackReturn read_parameters();
 
         // controller parameters
         std::vector<std::string> _joint_names;

@@ -1,5 +1,8 @@
 #include "torque_controller/torque_controller.hpp"
 #include "rclcpp/logging.hpp"
+#include "controller_interface/helpers.hpp"
+#include "hardware_interface/loaned_command_interface.hpp"
+#include "rclcpp/qos.hpp"
 
 namespace torque_controller{
 
@@ -20,7 +23,7 @@ controller_interface::CallbackReturn TorqueController::on_init(){
     return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp_lifecycle::State& previous_state){
+controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp_lifecycle::State& /*previous_state*/){
     auto ret = this->read_parameters();
     if (ret != controller_interface::CallbackReturn::SUCCESS)
         return ret;
@@ -56,6 +59,45 @@ controller_interface::CallbackReturn TorqueController::read_parameters(){
         _command_interface_types.push_back(joint+"/"+_params.interface_name);
     
     return controller_interface::CallbackReturn::SUCCESS;
+}
+
+controller_interface::InterfaceConfiguration TorqueController::command_interface_configuration() const{
+    controller_interface::InterfaceConfiguration cmd_interfaces_cfg;
+    cmd_interfaces_cfg.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+    cmd_interfaces_cfg.names =  _command_interface_types;
+    return cmd_interfaces_cfg;
+}
+
+controller_interface::InterfaceConfiguration TorqueController::state_interface_configuration() const{
+    return controller_interface::InterfaceConfiguration{controller_interface::interface_configuration_type::NONE};
+}
+
+controller_interface::CallbackReturn TorqueController::on_activate(const rclcpp_lifecycle::State& /*previous_state*/){
+    /** This is critical as of now and will be changed in future
+     * subjected to it capability of real time and deterministic
+     * cycles for practical applications
+     */
+    std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>> ordered_interfaces;
+    if(!controller_interface::get_ordered_interfaces(
+        command_interfaces_, _command_interface_types, std::string(""), ordered_interfaces) ||
+        _command_interface_types.size() !=ordered_interfaces.size()){
+            RCLCPP_ERROR(get_node()->get_logger(), "Expected %zu command interfaces, got %zu", 
+            _command_interface_types.size(), ordered_interfaces.size());
+            return controller_interface::CallbackReturn::ERROR;
+        }
+    _rt_torque_command_ptr = realtime_tools::RealtimeBuffer<std::shared_ptr<torqueCmd>>(nullptr);
+    RCLCPP_INFO(get_node()->get_logger(), "activate successful");
+    return controller_interface::CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn TorqueController::on_deactivate(const rclcpp_lifecycle ::State& /*previous_state*/){
+    // reset the command buffer
+    _rt_torque_command_ptr = realtime_tools::RealtimeBuffer<std::shared_ptr<torqueCmd>>(nullptr);
+    return controller_interface::CallbackReturn::SUCCESS;
+}
+
+controller_interface::return_type TorqueController::update(const rclcpp::Time& time, const rclcpp::Duration& duration){
+    return controller_interface::return_type::OK;
 }
 } // torque_controller
 
