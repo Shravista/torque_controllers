@@ -67,6 +67,7 @@ endif()
 install(
   TARGETS
     torque_controller
+    torque_controller_parameters
   EXPORT export_torque_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
