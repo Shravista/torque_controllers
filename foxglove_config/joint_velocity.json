@@ -1,0 +1,62 @@
+{
+  "paths": [
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[0]",
+      "enabled": true,
+      "color": "#4e98e2",
+      "label": "qd_1"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[1]",
+      "enabled": true,
+      "color": "#f5774d",
+      "label": "qd_2"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[2]",
+      "enabled": true,
+      "color": "#f7df71",
+      "label": "qd_3"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[3]",
+      "enabled": true,
+      "color": "#5cd6a9",
+      "label": "qd_4"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[4]",
+      "enabled": true,
+      "color": "#61cbff",
+      "label": "qd_5"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[5]",
+      "enabled": true,
+      "color": "#a395e2",
+      "label": "qd_5"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.velocity[6]",
+      "enabled": true,
+      "color": "#cad660",
+      "label": "qd_6"
+    }
+  ],
+  "showXAxisLabels": true,
+  "showYAxisLabels": true,
+  "showLegend": true,
+  "legendDisplay": "floating",
+  "showPlotValuesInLegend": false,
+  "isSynced": true,
+  "xAxisVal": "timestamp",
+  "sidebarDimension": 240,
+  "foxglovePanelTitle": "Joint Angular Velocities"
+}

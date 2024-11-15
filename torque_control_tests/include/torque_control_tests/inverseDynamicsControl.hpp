@@ -28,6 +28,7 @@ class InverseDynamicsControl: public rclcpp::Node{
         rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr _subs;
         sensor_msgs::msg::JointState::SharedPtr _state;
         std_msgs::msg::Float64MultiArray _msg;
+        rclcpp::TimerBase::SharedPtr _timer;
         
         // control parameters
         Eigen::MatrixXd _Kp = Eigen::Matrix2d::Zero();

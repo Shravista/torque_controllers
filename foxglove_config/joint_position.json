@@ -1,0 +1,64 @@
+{
+  "paths": [
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[0]",
+      "enabled": true,
+      "color": "#4e98e2",
+      "label": "q1"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[1]",
+      "enabled": true,
+      "color": "#f5774d",
+      "label": "q2"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[2]",
+      "enabled": true,
+      "color": "#f7df71",
+      "label": "q3"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[3]",
+      "enabled": true,
+      "color": "#5cd6a9",
+      "label": "q4"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[4]",
+      "enabled": true,
+      "color": "#ffffff",
+      "label": "q5"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[5]",
+      "enabled": true,
+      "color": "#a395e2",
+      "label": "q6"
+    },
+    {
+      "timestampMethod": "receiveTime",
+      "value": "/joint_states.position[6]",
+      "enabled": true,
+      "color": "#d660c7",
+      "label": "q7"
+    }
+  ],
+  "minYValue": -3.14159,
+  "maxYValue": 3.14159,
+  "showXAxisLabels": true,
+  "showYAxisLabels": true,
+  "showLegend": true,
+  "legendDisplay": "floating",
+  "showPlotValuesInLegend": false,
+  "isSynced": true,
+  "xAxisVal": "timestamp",
+  "sidebarDimension": 240,
+  "foxglovePanelTitle": "Joint Angular position Plots"
+}
