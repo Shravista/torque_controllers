@@ -28,7 +28,7 @@ iiwa14_torque_controller:
       - iiwa_joint_6
       - iiwa_joint_7
     K: [16.0, 16.0, 16.0, 16.0, 16.0, 16.0, 16.0]
-    urdf_relative_path: example_robots/iiwa_description/urdf/iiwa14.urdf                                                                                    
+    urdf_relative_path: [example_robots, iiwa_description/urdf/iiwa14.urdf]                                                                                    
 
 iiwa14_position_controller:
   ros__parameters:

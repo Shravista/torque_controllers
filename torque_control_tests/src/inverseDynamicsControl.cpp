@@ -9,11 +9,11 @@ InverseDynamicsControl::InverseDynamicsControl(std::string robot_name)
            (this->get_parameter(_robot_name+".controller_name").as_string()+"/commands",10);
     _subs = this->create_subscription<sensor_msgs::msg::JointState>
             ("/joint_states", 10, std::bind(&InverseDynamicsControl::callback, this, _1));
-    
     _fileName = ament_index_cpp::get_package_share_directory
                 (this->get_parameter(_robot_name+".package_name").as_string()) + "/" +
                  this->get_parameter(_robot_name+".relative_path").as_string() + "/" +
                  this->get_parameter(_robot_name+".description").as_string();
+    RCLCPP_WARN_STREAM(this->get_logger(), "fileName = " << _fileName);
     // pinocchio
     pinocchio::urdf::buildModel(_fileName, _model);
     _data = pinocchio::Data(_model);

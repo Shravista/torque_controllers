@@ -10,7 +10,7 @@ torque_controller:
     description: "The gains for holding the robot position in a given place",
   }
   urdf_relative_path: {
-    type: string,
-    default_value: "",
-    description: "This urdf path should given relative the package e.g. <package_name>/urdf/robot.urdf",
+    type: string_array,
+    default_value: [],
+    description: "This urdf path should given relative the package e.g. [PathToPackage, <relativePath in package>urdf/robot.urdf",
   }

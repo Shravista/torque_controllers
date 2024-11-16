@@ -32,8 +32,8 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
 
     // pinocchio
     try{
-        WARN("on_init", _params.urdf_relative_path)
-        std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path);
+        WARN("on_init", _params.urdf_relative_path[0]+_params.urdf_relative_path[1])
+        std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path[0]) + "/" + _params.urdf_relative_path[1];
         WARN("on_init", fName)
         pinocchio::urdf::buildModel(fName, _model);
         _data = pinocchio::Data(_model);
@@ -80,8 +80,9 @@ controller_interface::CallbackReturn TorqueController::read_parameters(){
         return controller_interface::CallbackReturn::ERROR;
     }
 
-    if (_params.urdf_relative_path.empty()){
-        RCLCPP_ERROR(get_node()->get_logger(), "[read parameters] 'urdf_relative_path' is not provided");
+    if (_params.urdf_relative_path.size() != 2){
+        RCLCPP_ERROR(get_node()->get_logger(), "[read parameters] 'urdf_relative_path' is not provided in correct format.\
+                                                 The correct format is [package_name_that_urdf_is contained, relative_path_to_the_file_urdf_resides_in]");
     }
     _K = (Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>
             (_params.K.data(), _params.K.size())).asDiagonal();
