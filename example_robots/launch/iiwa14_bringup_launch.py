@@ -100,7 +100,7 @@ def generate_launch_description():
     )
 
     load_joint_position_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'iiwa14_effort_controller'],
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'iiwa14_torque_controller'],
         output='screen'
     )
 

@@ -3,31 +3,21 @@
 #include "controller_interface/helpers.hpp"
 #include "rclcpp/qos.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
-
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#define WARN(method, var) RCLCPP_WARN_STREAM(get_node()->get_logger(), "[" << method << "] " << #var " = " << var);
 
 namespace torque_controller{
 
 TorqueController::TorqueController() : controller_interface::ControllerInterface(), 
                     _rt_torque_command_ptr(nullptr),
                     _torque_commands_subs(nullptr){
-
+    _interface_name = hardware_interface::HW_IF_EFFORT;
 }
 
 controller_interface::CallbackReturn TorqueController::on_init(){
     try{
         declare_parameters();
     } catch (const std::exception& e){
-        RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
-                                                        e.what());
-        return controller_interface::CallbackReturn::ERROR;
-    }
-
-    // pinocchio
-    try{
-        std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path);
-        pinocchio::urdf::buildModel(fName, _model);
-        _data = pinocchio::Data(_model);
-    } catch (std::exception& e){
         RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
                                                         e.what());
         return controller_interface::CallbackReturn::ERROR;
@@ -40,6 +30,18 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
     if (ret != controller_interface::CallbackReturn::SUCCESS)
         return ret;
 
+    // pinocchio
+    try{
+        WARN("on_init", _params.urdf_relative_path)
+        std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path);
+        WARN("on_init", fName)
+        pinocchio::urdf::buildModel(fName, _model);
+        _data = pinocchio::Data(_model);
+    } catch (std::exception& e){
+        RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
+                                                        e.what());
+        return controller_interface::CallbackReturn::ERROR;
+    }
     _torque_commands_subs = get_node()->create_subscription<torqueCmd>(
         "~/torque", rclcpp::SystemDefaultsQoS(),
          [this](const torqueCmd::SharedPtr msg) {
@@ -63,17 +65,13 @@ void TorqueController::declare_parameters(){
 }
 
 controller_interface::CallbackReturn TorqueController::read_parameters(){
-    if (_param_listener){
+    if (!_param_listener){
         RCLCPP_ERROR(get_node()->get_logger(), "[read_parameters] Error encountered during init ");
         return controller_interface::CallbackReturn::ERROR;
     }
     _params = _param_listener->get_params();
     if(_params.joints.empty()){
         RCLCPP_ERROR(get_node()->get_logger(), "[read_parameters] 'joints' parameter was empty");
-        return controller_interface::CallbackReturn::ERROR;
-    }
-    if(_params.interface_name.empty()){
-        RCLCPP_ERROR(get_node()->get_logger(), "[read_parameters] 'interface_name' parameter was empty");
         return controller_interface::CallbackReturn::ERROR;
     }
 
@@ -88,7 +86,7 @@ controller_interface::CallbackReturn TorqueController::read_parameters(){
     _K = (Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>
             (_params.K.data(), _params.K.size())).asDiagonal();
     for (const auto &joint: _params.joints)
-        _command_interface_types.push_back(joint+"/"+_params.interface_name);
+        _command_interface_types.push_back(joint+"/"+_interface_name);
     for (const auto &joint: _params.joints)
         _state_interface_types.push_back(joint+"/position");
     for (const auto &joint: _params.joints)
