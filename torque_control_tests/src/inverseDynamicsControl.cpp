@@ -17,7 +17,7 @@ InverseDynamicsControl::InverseDynamicsControl(std::string robot_name)
     // pinocchio
     pinocchio::urdf::buildModel(_fileName, _model);
     _data = pinocchio::Data(_model);
-
+    
     _q = pinocchio::randomConfiguration(_model);
     _qdot = Eigen::VectorXd::Zero(_q.size());
     _qDes = Eigen::VectorXd::Zero(_q.size());

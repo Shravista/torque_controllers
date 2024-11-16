@@ -15,13 +15,16 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   realtime_tools
   std_msgs
+  sensor_msgs
   torque_msgs
+  ament_index_cpp
 )
 
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(backward_ros REQUIRED)
+find_package(pinocchio REQUIRED)
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
 find_package(${Dependency} REQUIRED)
 endforeach()
@@ -37,10 +40,17 @@ include_directories(include)
 add_library(torque_controller SHARED
             src/torque_controller.cpp)
 target_compile_features(torque_controller PUBLIC cxx_std_17)
-target_link_libraries(torque_controller PUBLIC torque_controller_parameters)
-ament_target_dependencies(torque_controller PUBLIC ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(torque_controller 
+                      PUBLIC 
+                      pinocchio::pinocchio 
+                      ament_index_cpp::ament_index_cpp 
+                      torque_controller_parameters)
+ament_target_dependencies(torque_controller PUBLIC 
+                          ${THIS_PACKAGE_INCLUDE_DEPENDS} 
+                          )
 target_compile_definitions(torque_controller PRIVATE "TORQUE_CONTROLLER_BUILDING_DLL")
 target_include_directories(torque_controller PUBLIC $<INSTALL_INTERFACE:include/torque_controller>)
+pluginlib_export_plugin_description_file(controller_interface torque_controller.xml)
 
 # install 
 install(
