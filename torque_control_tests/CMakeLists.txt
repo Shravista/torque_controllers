@@ -34,10 +34,14 @@ add_executable(gravityCompensation src/gravityCompensation.cpp src/inverseDynami
 target_link_libraries(gravityCompensation pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
 ament_target_dependencies(gravityCompensation rclcpp std_msgs sensor_msgs torque_msgs)
 
+add_executable(iDControlVer2 src/iDControlVer2.cpp src/inverseDynamicsControl.cpp)
+target_link_libraries(iDControlVer2 pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
+ament_target_dependencies(iDControlVer2 rclcpp std_msgs sensor_msgs torque_msgs)
+
 
 
 # add install targets here
-install(TARGETS planar_r2 iDControl pdGravityControl gravityCompensation
+install(TARGETS planar_r2 iDControl pdGravityControl gravityCompensation iDControlVer2
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

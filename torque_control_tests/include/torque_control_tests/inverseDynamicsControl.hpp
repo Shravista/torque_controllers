@@ -18,16 +18,18 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-
+#include "torque_msgs/msg/commands.hpp"
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
 class InverseDynamicsControl: public rclcpp::Node{
     protected:
         rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr _pub;
+        rclcpp::Publisher<torque_msgs::msg::Commands>::SharedPtr _commander;
         rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr _subs;
         sensor_msgs::msg::JointState::SharedPtr _state;
         std_msgs::msg::Float64MultiArray _msg;
+        torque_msgs::msg::Commands _tau;
         rclcpp::TimerBase::SharedPtr _timer;
         
         // control parameters
@@ -51,11 +53,19 @@ class InverseDynamicsControl: public rclcpp::Node{
     
     public:
         InverseDynamicsControl(std::string robot_name);
+        InverseDynamicsControl(std::string robot_name, std::string version);
         ~InverseDynamicsControl(){};
 
+        // version
         void run(Eigen::VectorXd target);
         void pdGravityControl(Eigen::VectorXd target);
         void gravityCompensation();
+
+        // version 2
+        void run2(Eigen::VectorXd target);
+        void pdGravityControl2(Eigen::VectorXd target);
+        void gravityCompensation2();
+
 
 };
 #endif //_INVERSE_DYNAMICS_CONTROL_HPP_

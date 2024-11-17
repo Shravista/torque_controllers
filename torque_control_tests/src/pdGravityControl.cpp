@@ -7,8 +7,8 @@ int main(int argc, char* argv[]){
 
     Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
     std::cout << "# args = " << argc << std::endl;
-    for (int i = 1; i < argc; i++)
-        std::cout << "# " << i << " arg: " << argv[i] << std::endl;
+    // for (int i = 1; i < argc; i++)
+    //     std::cout << "# " << i << " arg: " << argv[i] << std::endl;
     if (argc == 11){
         for (int i = 0; i < 7; i++)
             qDes(i) = atof(argv[i+1])/180.0*M_PI;
