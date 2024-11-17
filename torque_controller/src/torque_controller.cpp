@@ -156,7 +156,8 @@ controller_interface::return_type TorqueController::update(const rclcpp::Time& /
      * else external agent is respnsible to send the sensible torque so that system is stable
      */
     auto sz = command_interfaces_.size();
-    if (!joint_commands || !(*joint_commands)){
+    // WARN("update", _torque_commands_subs->get_publisher_count())
+    if (!joint_commands || !(*joint_commands) || (_torque_commands_subs->get_publisher_count() == 0)){
         this->sendStaticInput();
     } else{
         if ((*joint_commands)->commands.size() != sz){

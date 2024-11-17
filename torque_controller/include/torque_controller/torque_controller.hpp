@@ -82,7 +82,7 @@ class TorqueController : public controller_interface::ControllerInterface {
 
         // interfaces
         std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>> _cmd_interfaces;
-    std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>> _state_interfaces;
+        std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>> _state_interfaces;
 
         // params
         std::shared_ptr<ParamListener> _param_listener;
