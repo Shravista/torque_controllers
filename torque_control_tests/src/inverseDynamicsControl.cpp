@@ -31,8 +31,6 @@ InverseDynamicsControl::InverseDynamicsControl(std::string robot_name)
     // need for dynamics callback for parameters
     auto timer_callback = [this](){
         this->getGains();
-        RCLCPP_WARN_STREAM(this->get_logger(), "Gains vale changed \nKp = " 
-            << this->_Kp.transpose() << " \nKd = " << this->_Kd.transpose());
     };
     _timer = this->create_wall_timer(1ms, timer_callback);
 }

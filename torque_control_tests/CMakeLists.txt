@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(pinocchio REQUIRED)
+find_package(torque_msgs)
 
 # include
 include_directories(include)
@@ -19,19 +20,19 @@ include_directories(include)
 # add executables here
 add_executable(planar_r2 src/planar_r2.cpp)
 target_link_libraries(planar_r2 pinocchio::pinocchio)
-ament_target_dependencies(planar_r2 rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(planar_r2 rclcpp std_msgs sensor_msgs torque_msgs)
 
 add_executable(iDControl src/iDControl.cpp src/inverseDynamicsControl.cpp)
 target_link_libraries(iDControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(iDControl rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(iDControl rclcpp std_msgs sensor_msgs torque_msgs)
 
 add_executable(pdGravityControl src/pdGravityControl.cpp src/inverseDynamicsControl.cpp)
 target_link_libraries(pdGravityControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(pdGravityControl rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(pdGravityControl rclcpp std_msgs sensor_msgs torque_msgs)
 
 add_executable(gravityCompensation src/gravityCompensation.cpp src/inverseDynamicsControl.cpp)
 target_link_libraries(gravityCompensation pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(gravityCompensation rclcpp std_msgs sensor_msgs)
+ament_target_dependencies(gravityCompensation rclcpp std_msgs sensor_msgs torque_msgs)
 
 
 

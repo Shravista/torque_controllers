@@ -5,6 +5,8 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #define WARN(method, var) RCLCPP_WARN_STREAM(get_node()->get_logger(), "[" << method << "] " << #var " = " << var);
+#define DEBUG(method, var) RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "[" << method << "] " << #var " = " << var);
+
 
 namespace torque_controller{
 
@@ -12,6 +14,7 @@ TorqueController::TorqueController() : controller_interface::ControllerInterface
                     _rt_torque_command_ptr(nullptr),
                     _torque_commands_subs(nullptr){
     _interface_name = hardware_interface::HW_IF_EFFORT;
+    
 }
 
 controller_interface::CallbackReturn TorqueController::on_init(){
@@ -32,9 +35,7 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
 
     // pinocchio
     try{
-        WARN("on_init", _params.urdf_relative_path[0]+_params.urdf_relative_path[1])
         std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path[0]) + "/" + _params.urdf_relative_path[1];
-        WARN("on_init", fName)
         pinocchio::urdf::buildModel(fName, _model);
         _data = pinocchio::Data(_model);
     } catch (std::exception& e){
@@ -42,20 +43,16 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
                                                         e.what());
         return controller_interface::CallbackReturn::ERROR;
     }
+    // initialize states dimensions
+    _q = Eigen::VectorXd::Zero(_params.joints.size());
+    _qdot = Eigen::VectorXd::Zero(_params.joints.size());
+
+    // subscriber
     _torque_commands_subs = get_node()->create_subscription<torqueCmd>(
         "~/torque", rclcpp::SystemDefaultsQoS(),
          [this](const torqueCmd::SharedPtr msg) {
             _rt_torque_command_ptr.writeFromNonRT(msg);}
     );
-    // _state_subs = get_node()->create_subscription<stateMsg>(
-    //     "/joint_states", rclcpp::SystemDefaultsQoS(),
-    //     [this](const stateMsg::SharedPtr msg) {
-    //         _q = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>
-    //                 (msg->position.data(), msg->position.size());
-    //         _qdot = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>
-    //                 (msg->velocity.data(), msg->velocity.size());
-    //     }
-    // );
     RCLCPP_INFO(get_node()->get_logger(), "Configure successful");
     return controller_interface::CallbackReturn::SUCCESS;
 }
@@ -121,34 +118,36 @@ controller_interface::CallbackReturn TorqueController::on_activate(const rclcpp_
     if(!controller_interface::get_ordered_interfaces(
         command_interfaces_, _command_interface_types, std::string(""), _cmd_interfaces) ||
         _command_interface_types.size() !=_cmd_interfaces.size()){
-            RCLCPP_ERROR(get_node()->get_logger(), "Expected %zu command interfaces, got %zu", 
+            RCLCPP_ERROR(get_node()->get_logger(), "[on_activate] Expected %zu command interfaces, got %zu", 
             _command_interface_types.size(), _cmd_interfaces.size());
             return controller_interface::CallbackReturn::ERROR;
     }
     
     
     if(!controller_interface::get_ordered_interfaces(
-        state_interfaces_, _command_interface_types, std::string(""), _state_interfaces) ||
+        state_interfaces_, _state_interface_types, std::string(""), _state_interfaces) ||
         _state_interface_types.size() != _state_interfaces.size()){
-            RCLCPP_ERROR(get_node()->get_logger(), "Expected %zu command interfaces, got %zu", 
+            RCLCPP_ERROR(get_node()->get_logger(), " [on_activate] Expected %zu state interfaces, got %zu", 
             _state_interface_types.size(), _state_interfaces.size());
             return controller_interface::CallbackReturn::ERROR;
     }
     _rt_torque_command_ptr = realtime_tools::RealtimeBuffer<std::shared_ptr<torqueCmd>>(nullptr);
-    RCLCPP_INFO(get_node()->get_logger(), "activate successful");
+    RCLCPP_INFO(get_node()->get_logger(), "Activate Successful");
     return controller_interface::CallbackReturn::SUCCESS;
 }
 
 controller_interface::CallbackReturn TorqueController::on_deactivate(const rclcpp_lifecycle ::State& /*previous_state*/){
+    this->sendStaticInput();
+
     // reset the command buffer
     _rt_torque_command_ptr = realtime_tools::RealtimeBuffer<std::shared_ptr<torqueCmd>>(nullptr);
     return controller_interface::CallbackReturn::SUCCESS;
 }
 
-controller_interface::return_type TorqueController::update(const rclcpp::Time& time, const rclcpp::Duration& duration){
+controller_interface::return_type TorqueController::update(const rclcpp::Time& /*time*/, const rclcpp::Duration& /* duration*/){
     auto joint_commands = _rt_torque_command_ptr.readFromRT();
     this->read_parameters();
-    RCLCPP_INFO_STREAM(get_node()->get_logger(), "Time: " << time.nanoseconds() << " duration: " << duration.seconds());
+    // RCLCPP_INFO_STREAM(get_node()->get_logger(), "Time: " << time.nanoseconds() << " duration: " << duration.seconds());
 
     /**
      * if no control is received hold the position using the inverse dynamics control
@@ -158,23 +157,7 @@ controller_interface::return_type TorqueController::update(const rclcpp::Time& t
      */
     auto sz = command_interfaces_.size();
     if (!joint_commands || !(*joint_commands)){
-        // get states
-        for (auto index= 0ul; index < sz; index++)
-            _q[index] = state_interfaces_[index].get_value();
-        for (auto index= 0ul; index < sz; index++)
-            _qdot[index] = state_interfaces_[sz+index].get_value();
-
-        // compute the system matrices
-        pinocchio::crba(_model, _data, _q);
-        pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
-        pinocchio::computeGeneralizedGravity(_model, _data, _q);
-        _data.M.triangularView<Eigen::StrictlyLower>() = 
-                        _data.M.transpose().triangularView<Eigen::StrictlyLower>();
-        
-        // compute  control based on inverse dynamics 
-        _u_static = -_data.M*_K*_qdot + _data.C*_qdot + _data.g;
-        for (auto index = 0ul; index < sz; ++index)
-            command_interfaces_[index].set_value(_u_static[index]);
+        this->sendStaticInput();
     } else{
         if ((*joint_commands)->commands.size() != sz){
             RCLCPP_ERROR_THROTTLE(
@@ -188,6 +171,27 @@ controller_interface::return_type TorqueController::update(const rclcpp::Time& t
     }
     
     return controller_interface::return_type::OK;
+}
+
+void TorqueController::sendStaticInput(){
+    auto sz = command_interfaces_.size();
+    // get states
+    for (auto index= 0ul; index < sz; index++)
+        _q[index] = state_interfaces_[index].get_value();
+    for (auto index= 0ul; index < sz; index++)
+        _qdot[index] = state_interfaces_[sz+index].get_value();
+
+    // compute the system matrices
+    pinocchio::crba(_model, _data, _q);
+    pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
+    pinocchio::computeGeneralizedGravity(_model, _data, _q);
+    _data.M.triangularView<Eigen::StrictlyLower>() = 
+                    _data.M.transpose().triangularView<Eigen::StrictlyLower>();
+    
+    // compute control inputs based on inverse dynamics with current state (position) as target and zero velocity
+    _u_static = -_data.M*_K*_qdot + _data.C*_qdot + _data.g;
+    for (auto index = 0ul; index < sz; ++index)
+        command_interfaces_[index].set_value(_u_static[index]);
 }
 } // torque_controller
 

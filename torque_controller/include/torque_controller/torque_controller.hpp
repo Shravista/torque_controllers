@@ -61,6 +61,7 @@ class TorqueController : public controller_interface::ControllerInterface {
         // functions
         void declare_parameters();
         controller_interface::CallbackReturn read_parameters();
+        void sendStaticInput();
 
         // controller parameters
         std::vector<std::string> _joint_names;
