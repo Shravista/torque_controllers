@@ -73,17 +73,6 @@ InverseDynamicsControl::InverseDynamicsControl(std::string robot_name, std::stri
 
 
 void InverseDynamicsControl::declareParams(){
-    /**
-     * The following parameters format are being used in this project
-     * ros__parameters:
-     *   <robot_name>:
-     *     package_name: "example_robots"
-     *     relative_path: "iiwa_description/urdf"
-     *     description: "iiwa14.urdf"
-     *     controller_name: "iiwa14_effort_controller"
-     *     kp: [0.0, 0.0, ..., 0.0]
-     *     kd: [0.0, 0.0, ..., 0.0] 
-     */
     std::vector<double> val;
     this->declare_parameter(_robot_name+".package_name", "example_robots");
     this->declare_parameter(_robot_name+".relative_path", "test");
