@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
     Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
     int method = IDC;
     if (argc == 11){
-        for (int i = 0; i < argc-1; i++)
+        for (int i = 0; i < 7; i++)
             qDes(i) = atof(argv[i+1])/180.0*M_PI;
     }
     
