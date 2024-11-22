@@ -22,8 +22,14 @@ def generate_launch_description():
     arg_use_rviz            = LaunchConfiguration('use_rviz')
     arg_use_sim_time        = LaunchConfiguration('use_sim_time', default='True')
     arg_gz_world            = LaunchConfiguration('world')
+    arg_controller          = LaunchConfiguration('controller_name', default='iiwa14_torque_controller')
 
     # Launch arguments
+    declare_controller_name = DeclareLaunchArgument(
+        name="controller_name",
+        default_value="iiwa14_torque_controller",
+        description="The name of the controller shuold be same as the one specified in the controller configuration that is being used in the controller.yaml"
+    )
     declare_urdf_model_path = DeclareLaunchArgument(
         name='urdf_model',
         default_value=urdf_default,
@@ -100,7 +106,7 @@ def generate_launch_description():
     )
 
     load_joint_position_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'iiwa14_torque_controller'],
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', arg_controller],
         output='screen'
     )
 
@@ -120,6 +126,7 @@ def generate_launch_description():
     ld.add_action(declare_rviz_config_file)
     ld.add_action(declare_use_sim_time_cmd)
     ld.add_action(declare_gz_world_cmd)
+    ld.add_action(declare_controller_name)
 
     # add event handlers
     ld.add_action(RegisterEventHandler(
