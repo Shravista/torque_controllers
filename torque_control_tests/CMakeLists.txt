@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(torque_control_tests)
 
+set(CMAKE_CXX_COMPILER clang++)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -13,6 +15,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(torque_msgs)
+
+# for fast compilation
+option(BUILD_TESTING "" OFF)
 
 # include
 include_directories(include)

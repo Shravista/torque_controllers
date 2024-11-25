@@ -1,23 +1,14 @@
-#include "torque_control_tests/inverseDynamicsControl.hpp"
+
 #include <fstream>
 #include <chrono>
 #include <string>
 #include <sstream>
 #include <signal.h>
 #include <vector>
-
-#define IDC 0 // inverse dynamics control
-#define PDG 1 // pdGravityControl
-#define GC  2 // gravity compensation
-#define IDCTRAJ 3 // traj track
-
+#include <iostream>
+#include <eigen3/Eigen/Eigen>
+#include <iomanip>
 using namespace std;
-
-void signalHandler( int signum ) {
-    std::cout << "\033[0;"+std::to_string(31)+"m" <<"Keyboard Interrupt is detected " << std::endl;
-
-    std::abort();
-}
 vector<vector<double>> csv2mat(string fileName){
     cout << " Iam callaed" << endl;
     ifstream file(fileName);
@@ -46,41 +37,44 @@ void csv2mat(string fileName, Eigen::MatrixXd& data){
     vector<vector<double>> vals = csv2mat(fileName);
     data.resize(vals.size(), vals[0].size());
     cout << "data " << data.rows() << ", " << data.cols() << endl;
-    for (size_t col = 0; col <  vals[0].size(); col++ ){
-        for(size_t row = 0; row < vals.size();row++){
+    for (int col = 0; col <  vals[0].size(); col++ ){
+        for(int row = 0; row < vals.size();row++){
             data(row,col) = vals[row][col];
         }
     }
 }
-
-#define PRINT(VAR, VAL) std::cout << "MEthod = " #VAR << "" #VAL " = " << VAL <<std::endl;
-
-int main(int argc, char* argv[]){
-    
-    rclcpp::init(argc, argv);
-
-    Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
-    int method = IDC;
-    if (argc == 11){
-        for (int i = 0; i < 7; i++)
-            qDes(i) = atof(argv[i+1])/180.0*M_PI;
-    }
-    
+;
+int main(){
     std::string fileName = "/home/shravista/muse_ws/src/torque_controllers/torque_control_tests/data/dataMinJerkSample_1.csv";
     Eigen::MatrixXd vals;
+    vector<vector<double>> vvals;
+
+    string k = "9.88131e-324";
+    cout << "k= " << stold(k) << endl;
+    vvals = csv2mat(fileName);
+    cout << vvals.size() << endl;
     csv2mat(fileName, vals);
-    InverseDynamicsControl controller("iiwa14", "Ver2");
+    cout << "vals of rows("<< vals.rows() << ") cols(" << vals.cols() << ") =  \n"<<  vals.block<1,7>(6275,0) <<  endl;
 
-    if (method == IDC)
-        controller.run2(qDes);
-    else if (method == PDG)
-        controller.pdGravityControl2(qDes);
-    else if (method==GC)
-        controller.gravityCompensation2();
-    else{
-        PRINT(method, IDCTRAJ)
-        controller.run2(vals);
+    Eigen::VectorXd vec(7);
+    vec = vals.block<1,7>(6275,0);
+    cout << vec.transpose();
+    Eigen::VectorXd qDes, qdDes, qddDes;
+    for (int iter = 0; iter < vals.rows(); iter++){
+
+        // extract data
+        qDes = vals.block<1,7>(iter,0);
+        qdDes = vals.block<1,7>(iter,7);
+        qddDes = vals.block<1,7>(iter,14);
+        cout << "q = " << qDes.transpose() << "\nqd = " << qdDes.transpose() << "\nqdd = " << qddDes.transpose() << endl;
     }
-    rclcpp::shutdown();
 
+    // cout << "vals = \n" << vals << endl;
+    // for (auto& it : vvals){
+    //     for (auto& itr : it){
+    //         cout << itr << ", ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << vvals.size() << ", " << vvals[0].size() << endl;
 }

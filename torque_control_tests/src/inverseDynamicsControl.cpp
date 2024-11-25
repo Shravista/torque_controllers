@@ -195,6 +195,40 @@ void InverseDynamicsControl::run2(Eigen::VectorXd target){
     }
 }
 
+void InverseDynamicsControl::run2(Eigen::MatrixXd target){
+    Eigen::VectorXd val(_q.size()), u(_q.size());
+    _tau.commands.resize(_q.size());
+    Eigen::VectorXd qDes(_q.size()), qdDes(_q.size()), qddDes(_q.size());
+    for (int iter = 0; iter < target.rows(); iter++){
+        rclcpp::spin_some(this->get_node_base_interface());
+
+        // extract data
+        qDes = target.block<1,7>(iter,0);
+        qdDes = target.block<1,7>(iter,7);
+        qddDes = target.block<1,7>(iter,14);
+
+        RCLCPP_INFO(this->get_logger(), "Running traj target");
+        // compute the system matrices
+        pinocchio::crba(_model, _data, _q);
+        pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
+        pinocchio::computeGeneralizedGravity(_model, _data, _q);
+
+        _data.M.triangularView<Eigen::StrictlyLower>() = 
+                        _data.M.transpose().triangularView<Eigen::StrictlyLower>();
+
+        // compute the control input
+        val = qddDes - _Kp*(_qDes -_q) - _Kd*(qdDes-_qdot);
+
+        u = _data.M*val + _data.C*_qdot + _data.g;
+
+        Eigen::Map<Eigen::VectorXd>(_tau.commands.data(), _tau.commands.size()) = u;                
+
+        _commander->publish(_tau);
+        // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
+        rclcpp::sleep_for(1ms);
+    }
+}
+
 void InverseDynamicsControl::pdGravityControl2(Eigen::VectorXd target){
     _qDes = target;
     Eigen::VectorXd val(_q.size()), u(_q.size());

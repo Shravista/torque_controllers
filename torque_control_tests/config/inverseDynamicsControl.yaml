@@ -15,5 +15,5 @@
       relative_path: "iiwa_description/urdf"
       description: "iiwa14.urdf"
       controller_name: "iiwa14_torque_controller"
-      kp: [16.0, 16.0, 16.0, 16.0, 16.0, 16.0, 16.0]
-      kd: [8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]
+      kp: [256.0, 256.0, 256.0, 256.0, 256.0, 256.0, 256.0]
+      kd: [32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0]

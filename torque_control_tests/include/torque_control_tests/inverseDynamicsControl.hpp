@@ -112,6 +112,12 @@ class InverseDynamicsControl: public rclcpp::Node{
 
         // version 2
         void run2(Eigen::VectorXd target);
+
+        /**
+         * The program run2 takes the offline generated trajectory to the robot to provide it as
+         * a reference trajectory
+         */
+        void run2(Eigen::MatrixXd target);
         void pdGravityControl2(Eigen::VectorXd target);
         void gravityCompensation2();
 
