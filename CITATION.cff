@@ -12,4 +12,6 @@ authors:
     email: chidres@iisc.ac.in
     affiliation: Indian Institute of Science
     orcid: 'https://orcid.org/0000-0002-4270-9443'
+repository-code: 'https://github.com/Shravista/torque_controllers.git'
+url: 'https://shravista.github.io/'
 license: Apache-2.0
