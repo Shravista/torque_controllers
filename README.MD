@@ -27,6 +27,4 @@ ros2 launch example_robots iiwa14_bringup_launch.py
 ros2 run torque_control_tests iDControlVer2 --ros-args --params-file  <WORKSPACE>/torque_controllers/torque_control_tests/config/inverseDynamicsControl.yaml
 ```
 ### To Do List
-1. Documentation
-2. Tutorials
-3. integration with real robots
+1. integration with real robots
