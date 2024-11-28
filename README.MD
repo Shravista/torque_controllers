@@ -1,6 +1,6 @@
 # Torque Controllers
 
-This is package to explore the torque controllers for robotic manipulators
+This package is made for the torque controllers for robotic manipulators. For inutition behind the source code, please visit https://shravista.github.io/blog/torque-controllers-for-manipulators.html
 
 ## Steps for installation
 Requirements: Ubuntu 24.04, ROS 2 Jazzy Jalisco, pinocchio, ros2 controllers, gazebo harmonic
