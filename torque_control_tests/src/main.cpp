@@ -47,34 +47,15 @@ void csv2mat(string fileName, Eigen::MatrixXd& data){
 int main(){
     std::string fileName = "/home/shravista/muse_ws/src/torque_controllers/torque_control_tests/data/dataMinJerkSample_1.csv";
     Eigen::MatrixXd vals;
-    vector<vector<double>> vvals;
 
-    string k = "9.88131e-324";
-    cout << "k= " << stold(k) << endl;
-    vvals = csv2mat(fileName);
-    cout << vvals.size() << endl;
+    std::string fileName = "/home/shravista/muse_ws/src/torque_controllers/torque_control_tests/data/dataMinJerkSample_1.csv";
     csv2mat(fileName, vals);
-    cout << "vals of rows("<< vals.rows() << ") cols(" << vals.cols() << ") =  \n"<<  vals.block<1,7>(6275,0) <<  endl;
-
-    Eigen::VectorXd vec(7);
-    vec = vals.block<1,7>(6275,0);
-    cout << vec.transpose();
-    Eigen::VectorXd qDes, qdDes, qddDes;
+    Eigen::VectorXd qDes(7), qdDes(7), qddDes(7);
     for (int iter = 0; iter < vals.rows(); iter++){
 
         // extract data
         qDes = vals.block<1,7>(iter,0);
         qdDes = vals.block<1,7>(iter,7);
         qddDes = vals.block<1,7>(iter,14);
-        cout << "q = " << qDes.transpose() << "\nqd = " << qdDes.transpose() << "\nqdd = " << qddDes.transpose() << endl;
     }
-
-    // cout << "vals = \n" << vals << endl;
-    // for (auto& it : vvals){
-    //     for (auto& itr : it){
-    //         cout << itr << ", ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << vvals.size() << ", " << vvals[0].size() << endl;
 }
