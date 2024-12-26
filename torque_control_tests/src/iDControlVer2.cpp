@@ -14,8 +14,8 @@
 using namespace std;
 
 void signalHandler( int signum ) {
-    std::cout << "\033[0;"+std::to_string(31)+"m" <<"Keyboard Interrupt is detected " << std::endl;
-
+    std::cout << "\033[0;"+std::to_string(31)+"m" <<"Keyboard Interrupt is detected: " << signum << std::endl;
+    rclcpp::shutdown();
     std::abort();
 }
 vector<vector<double>> csv2mat(string fileName){
@@ -59,11 +59,29 @@ int main(int argc, char* argv[]){
     
     rclcpp::init(argc, argv);
 
+    // change the desired joint angles here
     Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
+
+    // default method for running this control method is set poing tracking
     int method = IDC;
-    if (argc == 11){
-        for (int i = 0; i < 7; i++)
-            qDes(i) = atof(argv[i+1])/180.0*M_PI;
+
+    /**
+     * the above method can be modified by the user with the passing argument at command line 
+     * the first argument is the method type. The possible values for the same are
+     * 0: set point tracking with inverse dynamics control
+     * 1: pd gravity control
+     * 2: gravity compensation
+     * 3: trajectory tracking with inverse dynamics control
+     */
+    RCLCPP_INFO_STREAM(rclcpp::get_logger("rclcpp"), "Description: the method used in this node can be modified by the user with the passing argument at command line " <<
+     "* the first argument is the method type. The possible values for the same are\n" << 
+     "* 0: set point tracking with inverse dynamics control\n" <<
+     "* 1: pd gravity control\n" << 
+     "* 2: gravity compensation\n" <<
+     "* 3: trajectory tracking with inverse dynamics control");
+     
+    if (argc > 2){
+        method = atoi(argv[1]); // just a fix needs to be changed more appropriately
     }
     
     std::string fileName = "/home/shravista/muse_ws/src/torque_controllers/torque_control_tests/data/dataMinJerkSample_1.csv";
@@ -79,7 +97,12 @@ int main(int argc, char* argv[]){
         controller.gravityCompensation2();
     else{
         PRINT(method, IDCTRAJ)
-        controller.run2(vals);
+        auto q0 = vals.block(0,0,1,7).transpose();
+        auto qf = vals.block(vals.rows()-1,0,1,7).transpose();
+        PRINT(q0, q0.transpose())
+        PRINT(qf, qf.transpose())
+        
+        controller.run2(q0,qf,10,0.001);
     }
     rclcpp::shutdown();
 

@@ -173,7 +173,7 @@ void InverseDynamicsControl::run2(Eigen::VectorXd target){
     while (rclcpp::ok()){
         rclcpp::spin_some(this->get_node_base_interface());
 
-        RCLCPP_INFO(this->get_logger(), "Running");
+        RCLCPP_INFO_STREAM(this->get_logger(), "Running qDes = " << _qDes.transpose());
         // compute the system matrices
         pinocchio::crba(_model, _data, _q);
         pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
@@ -195,19 +195,51 @@ void InverseDynamicsControl::run2(Eigen::VectorXd target){
     }
 }
 
-void InverseDynamicsControl::run2(Eigen::MatrixXd target){
-    Eigen::VectorXd val(_q.size()), u(_q.size());
-    _tau.commands.resize(_q.size());
-    Eigen::VectorXd qDes(_q.size()), qdDes(_q.size()), qddDes(_q.size());
-    for (int iter = 0; iter < target.rows(); iter++){
+void InverseDynamicsControl::run2(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt){
+    int nDof = _q.size();
+    Eigen::VectorXd val(nDof), u(nDof);
+    _tau.commands.resize(nDof);
+    Eigen::VectorXd qDes(nDof), qdDes(nDof), qddDes(nDof);
+    int numSteps = duration/dt + 1;
+    /**
+     * Following code is for the quintic polynoimal trajectory generation
+     */
+    double t = 0.0, tf = duration;
+    Eigen::MatrixXd A(6,6);
+    A << 1, t, pow(t, 2), pow(t, 3), pow(t, 4), pow(t, 5),
+         0, 1, 2*t, 3*pow(t, 2), 4*pow(t, 3), 5*pow(t, 4),
+         0, 0, 2, 6*t, 12*pow(t, 2), 20*pow(t, 3),
+         1, tf, pow(tf, 2), pow(tf, 3), pow(tf, 4), pow(tf, 5),
+         0, 1, 2*tf, 3*pow(tf, 2), 4*pow(tf, 3), 5*pow(tf, 4),
+         0, 0, 2, 6*tf, 12*pow(tf, 2), 20*pow(tf, 3);
+    
+    Eigen::MatrixXd B(6,nDof);
+    B.setZero();
+    B.block(0, 0, 1, nDof) = q0.transpose();
+    B.block(3, 0, 1, nDof) = qf.transpose();
+    Eigen::  MatrixXd coeff = (A.inverse()*B).transpose();
+
+    auto pars = [](double t){
+        Eigen::MatrixXd times(6,3);
+        times << 1, 0, 0,
+                t, 1, 0,
+                pow(t, 2), 2*t, 1,
+                pow(t, 3), 3*pow(t, 2), 3*t,
+                pow(t, 4), 4*pow(t, 3), 6*pow(t, 2),
+                pow(t, 5), 5*pow(t, 4), 10*pow(t, 3);
+        return times;
+    };
+    RCLCPP_INFO_STREAM(this->get_logger(), "Running the inverser Dynamics Control for trajectory tracking");
+    for (int iter = 0; iter < numSteps+1; iter++){
         rclcpp::spin_some(this->get_node_base_interface());
 
+        t = iter*dt;
+        Eigen::MatrixXd traj = coeff*pars(t);
         // extract data
-        qDes = target.block<1,7>(iter,0);
-        qdDes = target.block<1,7>(iter,7);
-        qddDes = target.block<1,7>(iter,14);
+        qDes = traj.block<7,1>(0,0);
+        qdDes = traj.block<7,1>(0,1);
+        qddDes = traj.block<7,1>(0,2);
 
-        RCLCPP_INFO(this->get_logger(), "Running traj target");
         // compute the system matrices
         pinocchio::crba(_model, _data, _q);
         pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
@@ -217,7 +249,7 @@ void InverseDynamicsControl::run2(Eigen::MatrixXd target){
                         _data.M.transpose().triangularView<Eigen::StrictlyLower>();
 
         // compute the control input
-        val = qddDes - _Kp*(_qDes -_q) - _Kd*(qdDes-_qdot);
+        val = qddDes + _Kp*(qDes -_q) + _Kd*(qdDes-_qdot);
 
         u = _data.M*val + _data.C*_qdot + _data.g;
 
@@ -225,8 +257,9 @@ void InverseDynamicsControl::run2(Eigen::MatrixXd target){
 
         _commander->publish(_tau);
         // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
-        rclcpp::sleep_for(1ms);
+        rclcpp::sleep_for(std::chrono::milliseconds((int) dt*1000));
     }
+    RCLCPP_INFO_STREAM(this->get_logger(), "Completed the executing trajectory tracking");
 }
 
 void InverseDynamicsControl::pdGravityControl2(Eigen::VectorXd target){

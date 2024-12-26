@@ -111,16 +111,22 @@ class InverseDynamicsControl: public rclcpp::Node{
         void gravityCompensation();
 
         // version 2
+        /**
+         * \brief The program run2 is for  set point tracking using inverse dynamics control
+         * @param target = (Eigen::VectorXd) target joint angles
+         */
         void run2(Eigen::VectorXd target);
 
         /**
-         * The program run2 takes the offline generated trajectory to the robot to provide it as
-         * a reference trajectory
+         * \brief The program run2 is  overloaded function for trajectory tracking using inverse dynamics control
+         * @param q0 = (Eigen::VectorXd) initial joint angles
+         * @param qf = (Eigen::VectorXd) final joint angles
+         * @param duration = (double) duration of the trajectory
+         * @param dt = (double) time step
          */
-        void run2(Eigen::MatrixXd target);
+        void run2(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt);
         void pdGravityControl2(Eigen::VectorXd target);
         void gravityCompensation2();
-
 
 };
 #endif //_INVERSE_DYNAMICS_CONTROL_HPP_

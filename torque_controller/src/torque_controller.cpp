@@ -158,8 +158,10 @@ controller_interface::return_type TorqueController::update(const rclcpp::Time& /
     auto sz = command_interfaces_.size();
     // WARN("update", _torque_commands_subs->get_publisher_count())
     if (!joint_commands || !(*joint_commands) || (_torque_commands_subs->get_publisher_count() == 0)){
+        RCLCPP_DEBUG(get_node()->get_logger(), "No command received, holding position");
         this->sendStaticInput();
     } else{
+        RCLCPP_DEBUG(get_node()->get_logger(), "Command received, executing");
         if ((*joint_commands)->commands.size() != sz){
             RCLCPP_ERROR_THROTTLE(
                 get_node()->get_logger(), *(get_node()->get_clock()), 1000,
