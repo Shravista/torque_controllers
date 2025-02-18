@@ -11,6 +11,7 @@
 #include "torque_controller/visibility_controller.h"
 #include "torque_msgs/msg/commands.hpp"
 #include "rclcpp/subscription.hpp"
+#include "rclcpp/parameter_client.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 #include "realtime_tools/realtime_buffer.h"
 #include "sensor_msgs/msg/joint_state.hpp"

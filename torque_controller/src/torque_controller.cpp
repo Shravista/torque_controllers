@@ -33,10 +33,14 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
     if (ret != controller_interface::CallbackReturn::SUCCESS)
         return ret;
 
+    // robot description
+    auto parameters_client = std::make_shared<rclcpp::AsyncParametersClient>(get_node(), "/robot_state_publisher");
+    auto future = parameters_client->get_parameters({"robot_description"});
+    auto result = future.get();
     // pinocchio
     try{
-        std::string fName = ament_index_cpp::get_package_share_directory(_params.urdf_relative_path[0]) + "/" + _params.urdf_relative_path[1];
-        pinocchio::urdf::buildModel(fName, _model);
+        auto robot_description = result[0].value_to_string();
+        pinocchio::urdf::buildModelFromXML(robot_description, _model);
         _data = pinocchio::Data(_model);
     } catch (std::exception& e){
         RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
