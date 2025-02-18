@@ -80,11 +80,6 @@ controller_interface::CallbackReturn TorqueController::read_parameters(){
         RCLCPP_ERROR(get_node()->get_logger(), "[read parameters] 'K' parameter size (%zu) is not same as size of 'joint's' size (%zu)", _params.K.size(), _params.joints.size());
         return controller_interface::CallbackReturn::ERROR;
     }
-
-    if (_params.urdf_relative_path.size() != 2){
-        RCLCPP_ERROR(get_node()->get_logger(), "[read parameters] 'urdf_relative_path' is not provided in correct format.\
-                                                 The correct format is [package_name_that_urdf_is contained, relative_path_to_the_file_urdf_resides_in]");
-    }
     _K = (Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>
             (_params.K.data(), _params.K.size())).asDiagonal();
     for (const auto &joint: _params.joints)
