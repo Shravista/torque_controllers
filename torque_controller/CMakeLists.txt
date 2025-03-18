@@ -17,7 +17,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   std_msgs
   sensor_msgs
   torque_msgs
-  ament_index_cpp
 )
 
 
@@ -43,7 +42,6 @@ target_compile_features(torque_controller PUBLIC cxx_std_17)
 target_link_libraries(torque_controller 
                       PUBLIC 
                       pinocchio::pinocchio 
-                      ament_index_cpp::ament_index_cpp 
                       torque_controller_parameters)
 ament_target_dependencies(torque_controller PUBLIC 
                           ${THIS_PACKAGE_INCLUDE_DEPENDS} 

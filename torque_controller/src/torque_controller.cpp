@@ -2,7 +2,6 @@
 #include "rclcpp/logging.hpp"
 #include "controller_interface/helpers.hpp"
 #include "rclcpp/qos.hpp"
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #define WARN(method, var) RCLCPP_WARN_STREAM(get_node()->get_logger(), "[" << method << "] " << #var " = " << var);
 #define DEBUG(method, var) RCLCPP_DEBUG_STREAM(get_node()->get_logger(), "[" << method << "] " << #var " = " << var);
@@ -37,8 +36,11 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
     auto parameters_client = std::make_shared<rclcpp::AsyncParametersClient>(get_node(), "/robot_state_publisher");
     auto future = parameters_client->get_parameters({"robot_description"});
     auto result = future.get();
+
     // pinocchio
     try{
+        auto robot_description = result[0].value_to_string();
+        pinocchio::urdf::buildModelFromXML(robot_description, _model);
         auto robot_description = result[0].value_to_string();
         pinocchio::urdf::buildModelFromXML(robot_description, _model);
         _data = pinocchio::Data(_model);
