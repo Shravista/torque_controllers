@@ -4,7 +4,7 @@ This package is made for the torque controllers for robotic manipulators. For in
 
 Switching-base Control Architeture
 
-![control](./images/IDArchitecture_switch-based.png)
+![control](./images/IDArchitecture_switch-based.jpg)
 
 ## Steps for installation
 Requirements: Ubuntu 24.04, ROS 2 Jazzy Jalisco, pinocchio, ros2 controllers, gazebo harmonic.
