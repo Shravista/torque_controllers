@@ -51,7 +51,7 @@ class TorqueController : public controller_interface::ControllerInterface {
          *          controller_interface::InterfaceConfiguration (struct) with command interface
          *          names (<joint>/effort) and interface type (ALL, INDIVIDUAL, NONE).
          */
-        TORQUE_CONTROLLER_PUBLIC 
+        [[nodiscard]] 
         controller_interface::InterfaceConfiguration command_interface_configuration() const override;
 
         /**
@@ -64,7 +64,7 @@ class TorqueController : public controller_interface::ControllerInterface {
          *          names (<joint>/<state interface> e.g. joint1/position, joint1/velocity) and
          *          interface type (ALL, INDIVIDUAL, NONE).
          */
-        TORQUE_CONTROLLER_PUBLIC
+        [[nodiscard]]
         controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
         /**
