@@ -1,13 +1,8 @@
 <library path="torque_controller">
-  <class name="torque_controller/TorqueController" type="torque_controller::TorqueController" base_class_type="controller_interface::ControllerInterface">
-  <description>
-    The torque controller commands a group of joints for a robot manipulator.
-  </description>
-  </class>
-  <!-- <class name="forward_command_controller/MultiInterfaceForwardCommandController"
-         type="forward_command_controller::MultiInterfaceForwardCommandController" base_class_type="controller_interface::ControllerInterface">
+    <class name="torque_controller/TorqueController" 
+           type="torque_controller::TorqueController" base_class_type="controller_interface::ControllerInterface">
     <description>
-      MultiInterfaceForwardController ros2_control controller.
+    The torque controller commands a group of joints for a robot manipulator.
     </description>
-  </class> -->
+    </class>
 </library>

@@ -41,8 +41,6 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
     try{
         auto robot_description = result[0].value_to_string();
         pinocchio::urdf::buildModelFromXML(robot_description, _model);
-        auto robot_description = result[0].value_to_string();
-        pinocchio::urdf::buildModelFromXML(robot_description, _model);
         _data = pinocchio::Data(_model);
     } catch (std::exception& e){
         RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
@@ -178,26 +176,20 @@ controller_interface::return_type TorqueController::update(const rclcpp::Time& /
 }
 
 void TorqueController::sendStaticInput(){
+    /**
+     * This method supposed to send the torque commands that just hold the 
+     * franka current position without being sent from the torque controller.
+     * However, the franka_ros2 repo has currently uses the ignition which has its own 
+     * control model internally which was developed by themselves 
+     * that has already implemented the gravity compensation
+     * which is being used in the code here.
+     */
     auto sz = command_interfaces_.size();
-    // get states
-    for (auto index= 0ul; index < sz; index++)
-        _q[index] = state_interfaces_[index].get_value();
-    for (auto index= 0ul; index < sz; index++)
-        _qdot[index] = state_interfaces_[sz+index].get_value();
-
-    // compute the system matrices
-    pinocchio::crba(_model, _data, _q);
-    pinocchio::computeCoriolisMatrix(_model, _data, _q, _qdot);
-    pinocchio::computeGeneralizedGravity(_model, _data, _q);
-    _data.M.triangularView<Eigen::StrictlyLower>() = 
-                    _data.M.transpose().triangularView<Eigen::StrictlyLower>();
-    
-    // compute control inputs based on inverse dynamics with current state (position) as target and zero velocity
-    _u_static = -_data.M*_K*_qdot + _data.C*_qdot + _data.g;
     for (auto index = 0ul; index < sz; ++index)
-        command_interfaces_[index].set_value(_u_static[index]);
+        command_interfaces_[index].set_value(0);
 }
 } // torque_controller
 
 #include "pluginlib/class_list_macros.hpp"
-PLUGINLIB_EXPORT_CLASS(torque_controller::TorqueController, controller_interface::ControllerInterface)
+PLUGINLIB_EXPORT_CLASS(torque_controller::TorqueController, 
+                            controller_interface::ControllerInterface)
