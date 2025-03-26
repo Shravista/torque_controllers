@@ -42,6 +42,9 @@ class InverseDynamicsControl: public rclcpp::Node{
         Eigen::MatrixXd _Kd = Eigen::Matrix2d::Zero();
         long _iter=0;
 
+        // joint names
+        const std::vector<std::string> _joint_names;
+
         // states
         Eigen::VectorXd _q, _qdot, _qDes, _qdDes, _qddDes;
 
@@ -56,13 +59,10 @@ class InverseDynamicsControl: public rclcpp::Node{
          * This method declare the parameter as required by the node.
          *  The following parameters format are being used in this project
          *  ros__parameters:
-         *      <robot_name>:
-         *          package_name: 
-         *          relative_path: <comments: directory that folder contains the urdf description>
-         *          description: robot description file
-         *          controller_name: controller name
-         *          kp: [0.0, 0.0, ..., 0.0] position control gain
-         *          kd: [0.0, 0.0, ..., 0.0] velocity control gain
+         *      package_name: 
+         *      controller_name: controller name
+         *      kp: [0.0, 0.0, ..., 0.0] position control gain
+         *      kd: [0.0, 0.0, ..., 0.0] velocity control gain
          */
         void declareParams();
 
@@ -79,43 +79,34 @@ class InverseDynamicsControl: public rclcpp::Node{
          *          None
          */
         void callback(sensor_msgs::msg::JointState::SharedPtr msg);
+
+        /**
+         * The function finds the index of the element enquired in the given vector
+         * @param x = (std::vector<T>) vector of type T is reference
+         * @param val = (T) element of type T that has to be searched in the given array
+         */
+        template<typename T> 
+        size_t findID(std::vector<T>x, T val) {
+            auto it = std::find(x.begin(), x.end(), val); 
+            return (it - x.begin());
+        }
     
     public:
-        /**
-         * The following constructor to be used when the topic for commands provied by the default
-         * effort_controllers/JointGroupEffortControllers and the topic provided by this controller is of
-         * <controller name>/commands. 
-         * @arg:
-         *      robot_name = (string) robot name as defined in the params file and urdf
-         */
-        InverseDynamicsControl(std::string robot_name);
 
         /**
          * The following constructor to be used when the topic for commands provied by the 
          * torque_controller/TorqueController and the topic provided by this controller is of
          * <controller name>/torque. 
-         * @arg:
-         *      robot_name = (string) robot name as defined in the params file and urdf
-         *      version    = (string) just to distinguish the different controller types
+         * @param names = (std::vector<std::string>) vector of joint names
          */
-        InverseDynamicsControl(std::string robot_name, std::string version);
+        InverseDynamicsControl(std::vector<std::string> names);
         ~InverseDynamicsControl(){};
 
         /**
-         * The following methods (version 1 or 2) are implemented with the same idea of sending the control inputs as
-         * torques to the robot manipulator. These methods are self documented.
-         */
-        // version 1
-        void run(Eigen::VectorXd target);
-        void pdGravityControl(Eigen::VectorXd target);
-        void gravityCompensation();
-
-        // version 2
-        /**
-         * \brief The program run2 is for  set point tracking using inverse dynamics control
+         * \brief The program run is for  set point tracking using inverse dynamics control
          * @param target = (Eigen::VectorXd) target joint angles
          */
-        void run2(Eigen::VectorXd target);
+        void run(Eigen::VectorXd target);
 
         /**
          * \brief The program run2 is  overloaded function for trajectory tracking using inverse dynamics control
@@ -124,9 +115,37 @@ class InverseDynamicsControl: public rclcpp::Node{
          * @param duration = (double) duration of the trajectory
          * @param dt = (double) time step
          */
-        void run2(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt);
-        void pdGravityControl2(Eigen::VectorXd target);
-        void gravityCompensation2();
+        void run(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt);
 
+};
+
+/**
+ * The class method below is obtained from the stackexchange at the following web-address
+ * https://stackoverflow.com/questions/865668/parsing-command-line-arguments-in-c
+*/
+
+class InputParser{
+    public:
+        InputParser (int &argc, char **argv){
+            for (int i=1; i < argc; ++i)
+                this->tokens.push_back(std::string(argv[i]));
+        }
+        /// @author iain
+        const std::string& getCmdOption(const std::string &option) const{
+            std::vector<std::string>::const_iterator itr;
+            itr =  std::find(this->tokens.begin(), this->tokens.end(), option);
+            if (itr != this->tokens.end() && ++itr != this->tokens.end()){
+                return *itr;
+            }
+            static const std::string empty_string("");
+            return empty_string;
+        }
+        /// @author iain
+        bool cmdOptionExists(const std::string &option) const{
+            return std::find(this->tokens.begin(), this->tokens.end(), option)
+                   != this->tokens.end();
+        }
+    private:
+        std::vector<std::string> tokens;
 };
 #endif //_INVERSE_DYNAMICS_CONTROL_HPP_

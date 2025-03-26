@@ -23,30 +23,14 @@ option(BUILD_TESTING "" OFF)
 include_directories(include)
 
 # add executables here
-add_executable(planar_r2 src/planar_r2.cpp)
-target_link_libraries(planar_r2 pinocchio::pinocchio)
-ament_target_dependencies(planar_r2 rclcpp std_msgs sensor_msgs torque_msgs)
-
-add_executable(iDControl src/iDControl.cpp src/inverseDynamicsControl.cpp)
-target_link_libraries(iDControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(iDControl rclcpp std_msgs sensor_msgs torque_msgs)
-
-add_executable(pdGravityControl src/pdGravityControl.cpp src/inverseDynamicsControl.cpp)
-target_link_libraries(pdGravityControl pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(pdGravityControl rclcpp std_msgs sensor_msgs torque_msgs)
-
-add_executable(gravityCompensation src/gravityCompensation.cpp src/inverseDynamicsControl.cpp)
-target_link_libraries(gravityCompensation pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(gravityCompensation rclcpp std_msgs sensor_msgs torque_msgs)
-
-add_executable(iDControlVer2 src/iDControlVer2.cpp src/inverseDynamicsControl.cpp)
-target_link_libraries(iDControlVer2 pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(iDControlVer2 rclcpp std_msgs sensor_msgs torque_msgs)
+add_executable(franka_example_tests src/franka_examples_tests.cpp src/inverseDynamicsControl.cpp)
+target_link_libraries(franka_example_tests pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
+ament_target_dependencies(franka_example_tests rclcpp std_msgs sensor_msgs torque_msgs)
 
 
 
 # add install targets here
-install(TARGETS planar_r2 iDControl pdGravityControl gravityCompensation iDControlVer2
+install(TARGETS franka_example_tests
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
