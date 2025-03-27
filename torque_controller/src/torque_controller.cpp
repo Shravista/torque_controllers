@@ -41,8 +41,6 @@ controller_interface::CallbackReturn TorqueController::on_configure(const rclcpp
     try{
         auto robot_description = result[0].value_to_string();
         pinocchio::urdf::buildModelFromXML(robot_description, _model);
-        auto robot_description = result[0].value_to_string();
-        pinocchio::urdf::buildModelFromXML(robot_description, _model);
         _data = pinocchio::Data(_model);
     } catch (std::exception& e){
         RCLCPP_ERROR_STREAM(get_node()->get_logger(), "Exception thrown during initial stage with :\n" <<
