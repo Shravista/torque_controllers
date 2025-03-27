@@ -94,12 +94,13 @@ class InverseDynamicsControl: public rclcpp::Node{
     public:
 
         /**
-         * The following constructor to be used when the topic for commands provied by the 
+         * \brief The following constructor to be used when the topic for commands provied by the 
          * torque_controller/TorqueController and the topic provided by this controller is of
          * <controller name>/torque. 
-         * @param names = (std::vector<std::string>) vector of joint names
+         * @param name = (std::string) node name
+         * @param joint_names = (std::vector<std::string>) vector of joint names
          */
-        InverseDynamicsControl(std::vector<std::string> names);
+        InverseDynamicsControl(std::string name, std::vector<std::string> joint_names);
         ~InverseDynamicsControl(){};
 
         /**
@@ -109,13 +110,14 @@ class InverseDynamicsControl: public rclcpp::Node{
         void run(Eigen::VectorXd target);
 
         /**
-         * \brief The program run2 is  overloaded function for trajectory tracking using inverse dynamics control
-         * @param q0 = (Eigen::VectorXd) initial joint angles
+         * \brief The program run2 is  overloaded function for trajectory tracking using inverse dynamics control.
+         * Note that initial condition for the trajectory is q0 + offset
          * @param qf = (Eigen::VectorXd) final joint angles
+         * @param offset = (Eigen::VectorXd) offset from initial conditions
          * @param duration = (double) duration of the trajectory
          * @param dt = (double) time step
          */
-        void run(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt);
+        void run(Eigen::VectorXd qf, Eigen::VectorXd offset, double duration, double dt);
 
 };
 

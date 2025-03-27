@@ -1,8 +1,9 @@
 #include "torque_control_tests/inverseDynamicsControl.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#define PRINT(var) std::cout << #var " = " << var << std::endl;
 
 InverseDynamicsControl::InverseDynamicsControl(std::string name, std::vector<std::string> joint_names) 
-    : Node("inverseDynamicsController"), _joint_names(joint_names){
+    : Node(name), _joint_names(joint_names){
         
     _q      = Eigen::VectorXd::Zero(7);
     _qdot   = Eigen::VectorXd::Zero(7);
@@ -108,18 +109,15 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
         val = _Kp*(_qDes -_q) + _Kd*(-_qdot);
         u = _data.M*val + _data.C*_qdot;// + _data.g;
 
-        std::cout << "q = [" << _q.transpose() << "]" << std::endl;
-        std::cout << "qDes = [" << _qDes.transpose() << "]" << std::endl;
-
         Eigen::Map<Eigen::VectorXd>(_tau.commands.data(), _tau.commands.size()) = u;
-        RCLCPP_INFO_STREAM(this->get_logger(), "u = [" << u.transpose() << "]");
+        RCLCPP_INFO_STREAM(this->get_logger(), "e = [" << (_qDes -_q).transpose() << "]");
         _commander->publish(_tau);
         // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
         rclcpp::sleep_for(1ms);
     }
 }
 
-void InverseDynamicsControl::run(Eigen::VectorXd q0, Eigen::VectorXd qf, double duration, double dt){
+void InverseDynamicsControl::run(Eigen::VectorXd qf, Eigen::VectorXd offset, double duration, double dt){
     int nDof = _q.size();
     Eigen::VectorXd val(nDof), u(nDof);
     _tau.commands.resize(nDof);
@@ -139,6 +137,7 @@ void InverseDynamicsControl::run(Eigen::VectorXd q0, Eigen::VectorXd qf, double 
     
     Eigen::MatrixXd B(6,nDof);
     B.setZero();
+    auto q0 = _q + offset;
     B.block(0, 0, 1, nDof) = q0.transpose();
     B.block(3, 0, 1, nDof) = qf.transpose();
     Eigen::  MatrixXd coeff = (A.inverse()*B).transpose();
@@ -178,7 +177,7 @@ void InverseDynamicsControl::run(Eigen::VectorXd q0, Eigen::VectorXd qf, double 
         u = _data.M*val + _data.C*_qdot + _data.g;
 
         Eigen::Map<Eigen::VectorXd>(_tau.commands.data(), _tau.commands.size()) = u;                
-
+        RCLCPP_INFO_STREAM(this->get_logger(), "e = [" << (_qDes -_q).transpose() << "]");
         _commander->publish(_tau);
         // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
         rclcpp::sleep_for(std::chrono::milliseconds((int) dt*1000));

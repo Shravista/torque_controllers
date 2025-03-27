@@ -1,4 +1,4 @@
-/inverseDynamicsController:
+/franka_id_controller:
   ros__parameters:
     controller_name: "franka_torque_controller"
     kp: [256.0, 256.0, 256.0, 256.0, 256.0, 256.0, 256.0]

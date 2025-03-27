@@ -6,11 +6,12 @@
 #include <vector>
 
 int main(int argc, char* argv[]){
+    rclcpp::init(argc, argv);
     std::vector<std::string> joint_names{"fr3_joint1","fr3_joint2","fr3_joint3",
                                          "fr3_joint4","fr3_joint5","fr3_joint6",
                                         "fr3_joint7"};
-    InverseDynamicsControl controller(joint_names);
-
+    InverseDynamicsControl controller("franka_id_controller", joint_names);
+    // std::cout << "Initialized"
     // take inputs from the command line
     InputParser input(argc, argv);
     Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
@@ -33,5 +34,22 @@ int main(int argc, char* argv[]){
             rclcpp::shutdown();
         }
     }
+    if (input.cmdOptionExists("-s")){
+        /**
+         * The set point tracking method
+         */
+        std::cout << "**************** Start of Set point Tracking Method ****************" << std::endl;
+        controller.run(qDes);
+        std::cout << "**************** End of Set point Tracking Method ****************" << std::endl;
+    } else if(input.cmdOptionExists("-t")){
+        /**
+         * The trajectory tracking method
+         */
+        std::cout << "**************** Start of Trajectory Tracking Method ****************" << std::endl;
+        Eigen::VectorXd offset = Eigen::VectorXd::Zero(7);
+        controller.run(qDes, offset, 10, 0.001);
+        std::cout << "**************** End of Trajectory Tracking Method ****************" << std::endl;
+    }
+
     rclcpp::shutdown();
 }
