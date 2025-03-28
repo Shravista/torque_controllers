@@ -34,8 +34,6 @@ def get_robot_description(context: LaunchContext, arm_id, load_gripper, franka_h
         }
     )
     robot_description = {'robot_description': robot_description_config.toxml()}
-    with open("/home/shravista/muse_ws/src/franka_description/robots/fr3/fr3.urdf",'w') as file:
-        file.writelines(robot_description_config.toprettyxml())
 
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -56,7 +54,6 @@ def generate_launch_description():
     load_gripper_name = 'load_gripper'
     franka_hand_name = 'franka_hand'
     arm_id_name = 'arm_id'
-    param_file = os.path.join(get_package_share_directory("id_controller"), "config", "franka_controller.yaml")
 
     load_gripper = LaunchConfiguration(load_gripper_name)
     franka_hand = LaunchConfiguration(franka_hand_name)
@@ -111,10 +108,6 @@ def generate_launch_description():
                 'joint_state_broadcaster'],
         output='screen'
     )
-
-    # load_params = ExecuteProcess(
-    #     cmd = ['ros2 param load', 'franka_torque_controller', param_file]
-    # )
 
     load_ros2_controller = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'franka_torque_controller'],
