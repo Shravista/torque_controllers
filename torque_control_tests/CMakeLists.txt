@@ -15,6 +15,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(pinocchio REQUIRED)
 find_package(torque_msgs)
+find_package(franka_example_controllers)
 
 # for fast compilation
 option(BUILD_TESTING "" OFF)
@@ -25,7 +26,7 @@ include_directories(include)
 # add executables here
 add_executable(franka_example_tests src/franka_examples_tests.cpp src/inverseDynamicsControl.cpp)
 target_link_libraries(franka_example_tests pinocchio::pinocchio ament_index_cpp::ament_index_cpp)
-ament_target_dependencies(franka_example_tests rclcpp std_msgs sensor_msgs torque_msgs)
+ament_target_dependencies(franka_example_tests rclcpp std_msgs sensor_msgs torque_msgs franka_example_controllers)
 
 
 
