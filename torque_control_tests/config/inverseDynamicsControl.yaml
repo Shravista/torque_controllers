@@ -1,5 +1,6 @@
 /franka_id_controller:
   ros__parameters:
     controller_name: "franka_torque_controller"
-    kp: [256.0, 256.0, 256.0, 256.0, 256.0, 256.0, 256.0]
-    kd: [32.0, 32.0, 32.0, 32.0, 32.0, 32.0, 32.0]
+    kp:  [32.0, 24.0, 16.0, 24.0, 24.0, 16.0, 16.0]
+    kd: [8.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0]
+    amplitude: 10.0
