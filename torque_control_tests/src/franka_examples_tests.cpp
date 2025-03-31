@@ -4,6 +4,7 @@
 #include <string>
 #include <signal.h>
 #include <vector>
+#include <sstream>
 
 int main(int argc, char* argv[]){
     rclcpp::init(argc, argv);
@@ -49,6 +50,27 @@ int main(int argc, char* argv[]){
         Eigen::VectorXd offset = Eigen::VectorXd::Zero(7);
         controller.run(qDes, offset, 10, 0.001);
         std::cout << "**************** End of Trajectory Tracking Method ****************" << std::endl;
+    } else if (input.cmdOptionExists("-o")){
+        /**
+         * The open loop testing
+         */
+        std::cout << "**************** Start of open loop Method ****************" << std::endl;
+        controller.sampleTest(4);
+        std::cout << "**************** End of open loop Method ****************" << std::endl;
+    } else if (input.cmdOptionExists("-p")){
+        /**
+         * The PD Control loop testing
+         */
+        std::cout << "**************** Start of PD loop Method ****************" << std::endl;
+        controller.pdControl(qDes);
+        std::cout << "**************** End of PD loop Method ****************" << std::endl;
+    
+    } else if (input.cmdOptionExists("-c")){
+        /**
+         * Collect samples
+         */
+        std::string name = input.getCmdOption("-c");
+        controller.collectSamples(name);
     }
 
     rclcpp::shutdown();
