@@ -19,8 +19,10 @@
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "torque_msgs/msg/commands.hpp"
+#include "franka_example_controllers/motion_generator.hpp"
 using namespace std::chrono_literals;
 using std::placeholders::_1;
+using namespace std;
 
 class InverseDynamicsControl: public rclcpp::Node{
     /**
@@ -45,8 +47,12 @@ class InverseDynamicsControl: public rclcpp::Node{
         // joint names
         const std::vector<std::string> _joint_names;
 
+        rclcpp::Time _start_time;
+        std::unique_ptr<MotionGenerator> _motion_generator;
+
         // states
         Eigen::VectorXd _q, _qdot, _qDes, _qdDes, _qddDes;
+        double alpha = 0.99;
 
         // pinocchio
         std::string _fileName;
@@ -119,6 +125,58 @@ class InverseDynamicsControl: public rclcpp::Node{
          */
         void run(Eigen::VectorXd qf, Eigen::VectorXd offset, double duration, double dt);
 
+        /**
+         * \brief The program sampleTest is to just actuate joints and see what is 
+         * the minimum torque applied is required
+         * @param jointIndex = (int) which index of the joint to actuate
+         */
+        void sampleTest(int jointIndex);
+
+        /**
+         * \brief The method pdControl for the set-point tracking
+         * @param qDes = (Eigen::VectorXd) desired joint position -> use wisely
+         */
+        void pdControl(Eigen::VectorXd qDes);
+
+        /**
+         * \brief The method collectSamples for the collection of the states data
+         */
+        void collectSamples(std::string fileName);
+
+        std::vector<std::vector<double>> csv2mat(std::string fileName){
+            cout << " Iam callaed" << endl;
+            ifstream file(fileName);
+            cout << "File Exists" << std::boolalpha << file.good() << endl;
+            std::vector<std::vector<double>> vals;
+            std::string line, word;
+            int iter = 0;
+            while (getline(file, line)){
+                stringstream ss(line);
+                std::vector <double> val;
+                // cout << "i am called" << iter << endl;
+                while (getline(ss, word, ',')){
+                    // cout << word << endl;
+                    val.push_back(stold(word));
+                }
+                vals.push_back(val);
+                // iter++;
+            }
+                cout << "i am called" << iter << endl;
+        
+            file.close();
+            return vals;
+        }
+        
+        void csv2mat(std::string fileName, Eigen::MatrixXd& data){
+            std::vector<std::vector<double>> vals = csv2mat(fileName);
+            data.resize(vals.size(), vals[0].size());
+            cout << "data " << data.rows() << ", " << data.cols() << endl;
+            for (size_t col = 0; col <  vals[0].size(); col++ ){
+                for(size_t row = 0; row < vals.size();row++){
+                    data(row,col) = vals[row][col];
+                }
+            }
+        }
 };
 
 /**
