@@ -5,4 +5,10 @@
     The torque controller commands a group of joints for a robot manipulator.
     </description>
     </class>
+    <class name="franka_torque_controller/FrankaTorqueController" 
+           type="franka_torque_controller::FrankaTorqueController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+        The torque controller commands a group of joints for a franka emika panda robot manipulator.
+    </description>
+    </class>
 </library>
