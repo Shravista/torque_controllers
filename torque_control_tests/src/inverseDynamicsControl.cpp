@@ -1,5 +1,7 @@
 #include "torque_control_tests/inverseDynamicsControl.hpp"
 #include <ament_index_cpp/get_package_share_directory.hpp>
+#include "pinocchio/algorithm/joint-configuration.hpp"
+#include "pinocchio/algorithm/model.hpp"
 #define PRINT(var) std::cout << #var " = " << var << std::endl;
 
 InverseDynamicsControl::InverseDynamicsControl(std::string name, std::vector<std::string> joint_names) 
@@ -41,7 +43,17 @@ InverseDynamicsControl::InverseDynamicsControl(std::string name, std::vector<std
     auto urdf = val[0].string_value;
 
     // pinocchio
-    pinocchio::urdf::buildModelFromXML(urdf, _model);
+    pinocchio::Model tmp;
+    pinocchio::urdf::buildModelFromXML(urdf, tmp);
+    auto q = pinocchio::neutral(tmp);
+    // joints to lock
+    std::vector<std::string> lock_joints{"fr3_finger_joint1", "fr3_finger_joint2"};
+    std::vector<pinocchio::JointIndex> lock_joint_ids;
+    for (auto it = lock_joints.begin(); it!= lock_joints.end(); it++){
+        if (tmp.existJointName(*it))
+            lock_joint_ids.push_back(tmp.getJointId(*it));
+    }
+    _model = pinocchio::buildReducedModel(tmp, lock_joint_ids, q);
     _data = pinocchio::Data(_model);
 
     getGains();
@@ -64,6 +76,7 @@ void InverseDynamicsControl::declareParams(){
     this->declare_parameter("controller_name", "test_controller");
     this->declare_parameter("kp", val);
     this->declare_parameter("kd", val);
+    this->declare_parameter("amplitude", 1.0);
 }
 
 void InverseDynamicsControl::getGains(){
@@ -71,7 +84,7 @@ void InverseDynamicsControl::getGains(){
     auto Kd = this->get_parameter("kd").as_double_array();
     _Kp = (Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(Kp.data(), Kp.size())).asDiagonal();
     _Kd = (Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(Kd.data(), Kd.size())).asDiagonal();
-
+    // RCLCPP_INFO(this->get_logger(), "Update params called");
 }  
 
 void InverseDynamicsControl::callback(sensor_msgs::msg::JointState::SharedPtr msg){
@@ -86,7 +99,7 @@ void InverseDynamicsControl::callback(sensor_msgs::msg::JointState::SharedPtr ms
         // std::cout << "in call back _q.size() = " << _q.size() ;
         // std::cout << " ii = " << ii << " idx = " << idx << " val = " << _state->position.at(idx) << std::endl;
         _q(ii) = _state->position.at(idx);
-        _qdot(ii) = _state->velocity.at(idx);
+        _qdot(ii) = (1-alpha)*_qdot(ii) + alpha*_state->velocity.at(idx);
     }
 }
 
@@ -112,7 +125,7 @@ void InverseDynamicsControl::run(Eigen::VectorXd target){
         Eigen::Map<Eigen::VectorXd>(_tau.commands.data(), _tau.commands.size()) = u;
         RCLCPP_INFO_STREAM(this->get_logger(), "e = [" << (_qDes -_q).transpose() << "]");
         _commander->publish(_tau);
-        // RCLCPP_INFO_STREAM(this->get_logger(), "Message Checking " << sensor_msgs::msg::to_yaml(*_state));
+        RCLCPP_INFO_STREAM(this->get_logger(), "u = " << u.transpose());
         rclcpp::sleep_for(1ms);
     }
 }
@@ -183,4 +196,72 @@ void InverseDynamicsControl::run(Eigen::VectorXd qf, Eigen::VectorXd offset, dou
         rclcpp::sleep_for(std::chrono::milliseconds((int) dt*1000));
     }
     RCLCPP_INFO_STREAM(this->get_logger(), "Completed the executing trajectory tracking");
+}
+
+void InverseDynamicsControl::sampleTest(int jointIndex){
+    double period = 10.0, dt = 0.001, t = 0.0;
+    double amplitude = this->get_parameter("amplitude").as_double();
+    int nDof = _q.size();
+    _tau.commands.resize(nDof);
+    while (rclcpp::ok()){
+        auto val = amplitude*sin(2*M_PI/period*t);
+        t+=dt;
+        for (int index = 0; index < nDof; index++){
+            _tau.commands.at(index) = 0.0;
+            if (index == jointIndex)
+                _tau.commands.at(index) = val;
+        }
+        RCLCPP_INFO_STREAM(this->get_logger(), "tau = " << torque_msgs::msg::to_yaml(_tau));
+        _commander->publish(_tau);
+
+        rclcpp::sleep_for(std::chrono::milliseconds((int) dt*1000));
+    }
+}
+
+void InverseDynamicsControl::pdControl(Eigen::VectorXd qDes){
+    _qDes = qDes;
+    Eigen::VectorXd val(_q.size()), u(_q.size());
+    _tau.commands.resize(_q.size());
+    _motion_generator = std::make_unique<MotionGenerator>(0.2, _q, _qDes);
+    _start_time = this->now();
+    while (rclcpp::ok()){
+        rclcpp::spin_some(this->get_node_base_interface());
+        getGains();
+        auto trajectory_time = this->now() - _start_time;
+        auto motion_generator_output = _motion_generator->getDesiredJointPositions(trajectory_time);
+        Eigen::Matrix<double, 7, 1> q_i = motion_generator_output.first;
+        bool finished = motion_generator_output.second;
+
+        if (!finished){
+            // compute the control input
+            u = _Kp*(q_i -_q) + _Kd*(-_qdot);
+
+            Eigen::Map<Eigen::VectorXd>(_tau.commands.data(), _tau.commands.size()) = u;
+            RCLCPP_INFO_STREAM(this->get_logger(), "e = [" << (q_i -_q).transpose() << "]");
+            _commander->publish(_tau);
+            RCLCPP_INFO_STREAM(this->get_logger(), "u = " << u.transpose());
+        } 
+        rclcpp::sleep_for(1ms);
+    }
+}
+
+void InverseDynamicsControl::collectSamples(std::string fileName){
+    std::ofstream file(fileName);
+    _start_time = this->now();
+    auto trajectory_time = this->now() - _start_time;
+    double val = 0.0;
+    rclcpp::spin_some(this->get_node_base_interface());
+    rclcpp::sleep_for(1ms);
+    while (val <=  10.0){
+        rclcpp::spin_some(this->get_node_base_interface());
+        trajectory_time = this->now() - _start_time;
+        val = trajectory_time.nanoseconds()*1e-09;
+        file << val << "," << _q(0) << "," << _q(1) << "," << _q(2) << "," << _q(3) 
+            << "," << _q(4) << "," << _q(5) << "," << _q(6) << ","
+             << _qdot(0) << "," << _qdot(1) << "," << _qdot(2) << "," 
+             << _qdot(3) << "," << _qdot(4) << "," << _qdot(5) << "," << _qdot(6) <<"\n";
+        RCLCPP_INFO_STREAM(this->get_logger(), "time = " << val );
+        // rclcpp::sleep_for(1ms);
+    }
+
 }
