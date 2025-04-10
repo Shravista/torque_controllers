@@ -1,0 +1,77 @@
+#include "torque_control_tests/inverseDynamicsControl.hpp"
+#include <fstream>
+#include <chrono>
+#include <string>
+#include <signal.h>
+#include <vector>
+#include <sstream>
+
+int main(int argc, char* argv[]){
+    rclcpp::init(argc, argv);
+    std::vector<std::string> joint_names{"fr3_joint1","fr3_joint2","fr3_joint3",
+                                         "fr3_joint4","fr3_joint5","fr3_joint6",
+                                        "fr3_joint7"};
+    InverseDynamicsControl controller("franka_id_controller", joint_names);
+    // std::cout << "Initialized"
+    // take inputs from the command line
+    InputParser input(argc, argv);
+    Eigen::VectorXd qDes = Eigen::VectorXd::Zero(7);
+    
+    if (input.cmdOptionExists("-j")){
+        auto val = input.getCmdOption("-j");
+        std::cout << "val = " << val << std::endl;
+        std::stringstream ss(val);
+        int counter = 0;
+        std::string word;
+        while(!ss.eof()){
+            std::getline(ss, word, ' ');
+            counter ++;
+            if (counter < 8)
+                qDes(counter-1) = std::stod(word)*M_PI/180.0;
+        }
+        std::cout << qDes.transpose() << std::endl;
+        if (counter < 7){
+            std::cout << "not enough inputs\nshutting down!!!" << std::endl;
+            rclcpp::shutdown();
+        }
+    }
+    if (input.cmdOptionExists("-s")){
+        /**
+         * The set point tracking method
+         */
+        std::cout << "**************** Start of Set point Tracking Method ****************" << std::endl;
+        controller.run(qDes);
+        std::cout << "**************** End of Set point Tracking Method ****************" << std::endl;
+    } else if(input.cmdOptionExists("-t")){
+        /**
+         * The trajectory tracking method
+         */
+        std::cout << "**************** Start of Trajectory Tracking Method ****************" << std::endl;
+        Eigen::VectorXd offset = Eigen::VectorXd::Zero(7);
+        controller.run(qDes, offset, 10, 0.001);
+        std::cout << "**************** End of Trajectory Tracking Method ****************" << std::endl;
+    } else if (input.cmdOptionExists("-o")){
+        /**
+         * The open loop testing
+         */
+        std::cout << "**************** Start of open loop Method ****************" << std::endl;
+        controller.sampleTest(4);
+        std::cout << "**************** End of open loop Method ****************" << std::endl;
+    } else if (input.cmdOptionExists("-p")){
+        /**
+         * The PD Control loop testing
+         */
+        std::cout << "**************** Start of PD loop Method ****************" << std::endl;
+        controller.pdControl(qDes);
+        std::cout << "**************** End of PD loop Method ****************" << std::endl;
+    
+    } else if (input.cmdOptionExists("-c")){
+        /**
+         * Collect samples
+         */
+        std::string name = input.getCmdOption("-c");
+        controller.collectSamples(name);
+    }
+
+    rclcpp::shutdown();
+}
