@@ -13,7 +13,7 @@ find_package(std_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-find_package(pinocc hio REQUIRED)
+find_package(pinocchio REQUIRED)
 find_package(torque_msgs)
 find_package(franka_example_controllers)
 
