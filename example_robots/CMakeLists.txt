@@ -10,7 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 
-install(DIRECTORY iiwa_description planar_robots config launch
+install(DIRECTORY iiwa_description config launch
         DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)

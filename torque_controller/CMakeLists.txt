@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   torque_msgs
   franka_semantic_components
   std_srvs
+  franka_example_controllers
   franka_msgs
   ament_index_cpp
 )
@@ -42,7 +43,8 @@ include_directories(include)
 # add libraries
 add_library(torque_controller SHARED
             src/torque_controller.cpp
-            src/franka_torque_controller.cpp)
+            src/franka_torque_controller.cpp
+            src/franka_velocity_controller.cpp)
 target_compile_features(torque_controller PUBLIC cxx_std_17)
 target_link_libraries(torque_controller 
                       PUBLIC 
