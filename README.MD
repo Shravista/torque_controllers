@@ -18,7 +18,10 @@ git clone https://github.com/Shravista/torque_controllers.git
 ```
 colcon build --symlink-install --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 ```
+3. For bringing up the franka
+``` 
+ros2 launch example_robots gazebo_franka_bringup.launch.py
+```
 
-### To Do List
-1. integration with real robots
+More examples can be found under the `example_robots` folder
 

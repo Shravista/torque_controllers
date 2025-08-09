@@ -12,7 +12,7 @@
 namespace franka_velocity_controller {
 
 
-controller_interface::InterfaceConfiguration
+controller_interface::InterfaceConfiguratnion
 FrankaVelocityController::command_interface_configuration() const {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
